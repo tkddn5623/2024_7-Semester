@@ -50,3 +50,12 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# .vs, .gdb, and .vscode temp file
+.vs/
+.vscode/
+x64/
+.gdb_history
+
+# exercises
+_exercise?/
