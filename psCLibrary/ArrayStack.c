@@ -13,7 +13,7 @@ typedef struct {
 ArrayStack* AS_new(int max) {
 	ArrayStack* pstack;
 	pstack = malloc(sizeof(ArrayStack)); if (!pstack) exit(1);
-	pstack->items = calloc(max, sizeof(Element)) if (!pstack->items) exit(1);
+	pstack->items = calloc(max, sizeof(Element)); if (!pstack->items) exit(1);
 	pstack->top = -1;
 #ifdef AUTOMATIC_RESIZE
 	pstack->capacity = max;
@@ -33,12 +33,12 @@ Element AS_top(const ArrayStack* pstack) {
 void AS_push(ArrayStack* pstack, int item) {
 #ifdef AUTOMATIC_RESIZE
 	if (pstack->top == pstack->capacity - 1) {
-		pstack->items = realloc(pstack->items, (pstack->capacity *= 2) * sizeof(Element));
+		pstack->items = realloc(pstack->items, (pstack->capacity *= 2) * sizeof(Element)); if (!pstack->items) exit(1);
 	}
 #endif
 	pstack->items[++pstack->top] = item;
 }
-char AS_pop(ArrayStack* pstack) {
+Element AS_pop(ArrayStack* pstack) {
 	return pstack->items[pstack->top--];
 }
 
@@ -60,4 +60,7 @@ int AS_full(const ArrayStack* pstack) {
 *
 * 2024.2.10.
 * Now, the stack supports automatic resize.
+*
+* 2024.3.13.
+* fix typo.
 */

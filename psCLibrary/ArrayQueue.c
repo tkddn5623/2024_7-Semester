@@ -4,9 +4,9 @@ typedef int Element;
 
 typedef struct {
 	Element* items;
-	int capacity;
 	int front;
 	int rear;
+	int capacity;
 } ArrayQueue;
 
 ArrayQueue* AQ_new(int required_size) {
