@@ -2,11 +2,11 @@
 
 typedef int Element;
 
-void _MergeSort_impl(Element* list, Element* sorted, const int left, const int right) {
+void MergeSort_impl(Element* list, Element* sorted, const int left, const int right) {
     if (left >= right) return;
     const int mid = left + (right - left) / 2;
-    _MergeSort_impl(list, sorted, left, mid);
-    _MergeSort_impl(list, sorted, mid + 1, right);
+    MergeSort_impl(list, sorted, left, mid);
+    MergeSort_impl(list, sorted, mid + 1, right);
     int idx = left, first = left, second = mid + 1;
     while (first <= mid && second <= right) {
         if (list[first] <= list[second]) sorted[idx++] = list[first++];
@@ -18,18 +18,18 @@ void _MergeSort_impl(Element* list, Element* sorted, const int left, const int r
 }
 void MergeSort(Element* list, int size) {
     Element* sorted = calloc(size, sizeof(Element)); if (!sorted) exit(1);
-    _MergeSort_impl(list, sorted, 0, size - 1);
+    MergeSort_impl(list, sorted, 0, size - 1);
     free(sorted);
 }
 
 /*
 Integer Sort (2023.7.21 Fri.)
 
-void _MergeSort_impl(int* list, int* sorted, const int left, const int right) {
+void MergeSort_impl(int* list, int* sorted, const int left, const int right) {
     if (left >= right) return;
     const int mid = left + (right - left) / 2;
-    _MergeSort_impl(list, sorted, left, mid);
-    _MergeSort_impl(list, sorted, mid + 1, right);
+    MergeSort_impl(list, sorted, left, mid);
+    MergeSort_impl(list, sorted, mid + 1, right);
     int idx = left, first = left, second = mid + 1;
     while (first <= mid && second <= right) {
         if (list[first] <= list[second]) sorted[idx++] = list[first++];
@@ -41,7 +41,7 @@ void _MergeSort_impl(int* list, int* sorted, const int left, const int right) {
 }
 void MergeSort(int* list, int size) {
     int* sorted = calloc(size, sizeof(int)); if (!sorted) exit(1);
-    _MergeSort_impl(list, sorted, 0, size - 1);
+    MergeSort_impl(list, sorted, 0, size - 1);
 	free(sorted);
 }
 */
