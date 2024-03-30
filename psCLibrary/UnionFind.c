@@ -1,5 +1,3 @@
-#include <stdlib.h>
-
 int UF_find(int disjset[], int key) {
     if (disjset[key] < 0) return key;
     else return disjset[key] = UF_find(disjset, disjset[key]);
