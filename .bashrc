@@ -117,7 +117,7 @@ if ! shopt -oq posix; then
 fi
 . "$HOME/.cargo/env"
 
-if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
+if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ "$TERM" =~ screen || "$TERM" =~ tmux ]] && [ -n "$TMUX" ]; then
   alias clear='clear; tmux clear-history'
 fi
 
