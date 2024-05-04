@@ -1,0 +1,2 @@
+./find --help
+./find . -name "pred.c"
