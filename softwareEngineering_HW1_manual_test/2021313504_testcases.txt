@@ -11,7 +11,7 @@
 ./find . -perm 644 -cnewer "pred.c" -fprint "result.txt"
 ./find . -xdev -noignore_readdir_raceW -fstype f
 ./find . -newer "pred.c" -ls
-./find . -path "../*" -readable -prune
+./find . -path "../*" -readable -prune -printf "%Z%U"
 ./find . -nouser -nogroup -writable -executable \! -readable -ctime 1 -fls "result2.txt"
 ./find ~ -anewer
 ./find . -name "result.txt" -delete
@@ -24,7 +24,7 @@
 ./find -P . -name c* -printf "\NNN%a%A@%AH%AI%Ak%Al%AM%Ap%Ar%AS%AT%A+%AX%AZ%Aa%AA%Ab%AB%Ac\n"
 ./find . -name c* -printf "%Ad%b%BF%BD%c%d%D%f%F%g%G%h%H%i%k%l%m%M%n%p%P%s%S%t%TA%u%U%y%Y"
 ./find . -type d -exec chmod 755 {} \;
-./find . -maxdepth 2 -type d -printf "%p %TY-%Tm-%Td %TH:%TM:%TS %Tz\n"
 ./find . -type d -execdir touch {}/foo \;
 ./find . -newermt "Feb 1"
 ./find . -newerat "Aug 8" -perm /u=w,g=w -maxdepth 10 -mindepth 5 -mount -noleaf -user root
+./find . -maxdepth 2 -type d -printf "%TY-%Tm-%Td %TH:%TM:%TS %Tz\n"
