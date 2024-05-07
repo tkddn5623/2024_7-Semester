@@ -23,7 +23,7 @@ int Heap_empty(const Heap* pheap) {
 	return pheap->size == 0;
 }
 int Heap_compare(const HNode _A, const HNode _B) {
-	return _A.priority - _B.priority;
+	return _A.priority - _B.priority; // Minheap
 }
 void Heap_push(Heap* pheap, HNode item) {
 	if (pheap->size == pheap->capacity - 1) {
@@ -84,7 +84,7 @@ int Heap_empty_$$$$(const Heap_$$$$* pheap) {
 	return pheap->size == 0;
 }
 int Heap_compare_$$$$(const $$$$ _A, const $$$$ _B) {
-	return _A.priority - _B.priority;
+	return _A.priority - _B.priority; // Minheap
 }
 void Heap_push_$$$$(Heap_$$$$* pheap, $$$$ item) {
 	if (pheap->size == pheap->capacity - 1) {
