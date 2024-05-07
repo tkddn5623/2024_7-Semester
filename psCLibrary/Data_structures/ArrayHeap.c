@@ -54,8 +54,10 @@ HNode Heap_pop(Heap* pheap) {
 	return top;
 }
 
+
 // Above: Graph traversal version
 // Below: Template version
+
 
 typedef struct {
 	int value;

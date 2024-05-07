@@ -2,6 +2,44 @@ typedef struct {
 	$$$$* items;
 	int top;
 	int capacity;
+} Stack;
+
+Stack* Stack_new() {
+	Stack* pstack = malloc(sizeof(Stack)); if (!pstack) exit(1);
+	pstack->items = calloc(16, sizeof($$$$)); if (!pstack->items) exit(1);
+	pstack->top = -1;
+	pstack->capacity = 16;
+	return pstack;
+}
+void Stack_delete(Stack* pstack) {
+	free(pstack->items);
+	free(pstack);
+}
+int Stack_empty(const Stack* pstack) {
+	return pstack->top == -1;
+}
+void Stack_push(Stack* pstack, $$$$ item) {
+	if (pstack->top == pstack->capacity - 1) {
+		pstack->items = realloc(pstack->items, (pstack->capacity *= 2) * sizeof($$$$)); if (!pstack->items) exit(1);
+	}
+	pstack->items[++pstack->top] = item;
+}
+$$$$ Stack_pop(Stack* pstack) {
+	return pstack->items[pstack->top--];
+}
+$$$$ Stack_top(const Stack* pstack) {
+	return pstack->items[pstack->top];
+}
+
+
+// Above: Concise version
+// Below: Template version
+
+
+typedef struct {
+	$$$$* items;
+	int top;
+	int capacity;
 } Stack_$$$$;
 
 Stack_$$$$* Stack_new_$$$$() {
