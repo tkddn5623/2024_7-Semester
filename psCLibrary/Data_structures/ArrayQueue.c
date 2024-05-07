@@ -1,35 +1,27 @@
-#include <stdlib.h>
-
-typedef int Element;
-
 typedef struct {
-	Element* items;
+	$$$$* items;
+	int capacity;
 	int front;
 	int rear;
-	int capacity;
-} ArrayQueue;
+} Queue_$$$$;
 
-ArrayQueue* AQ_new(int required_size) {
-	ArrayQueue* pqueue;
-	int capacity;
-	for (int i = 4; (capacity = 1 << i) < required_size; i++);
-	pqueue = calloc(1, sizeof(ArrayQueue)); if (!pqueue) exit(1);
-	pqueue->items = calloc(capacity, sizeof(Element)); if (!pqueue->items) exit(1);
-	pqueue->capacity = capacity;
+Queue_$$$$* Queue_new_$$$$() {
+	Queue_$$$$* pqueue = calloc(1, sizeof(Queue_$$$$)); if (!pqueue) exit(1);
+	pqueue->items = calloc(16, sizeof($$$$)); if (!pqueue->items) exit(1);
+	pqueue->capacity = 16;
 	return pqueue;
 }
-void AQ_delete(ArrayQueue* pqueue) {
+void Queue_delete_$$$$(Queue_$$$$* pqueue) {
 	free(pqueue->items);
 	free(pqueue);
 }
-int AQ_empty(const ArrayQueue* pqueue) {
+int Queue_empty_$$$$(const Queue_$$$$* pqueue) {
 	return pqueue->front == pqueue->rear;
 }
-#ifdef AUTOMATIC_RESIZE
-void AQ_resize(ArrayQueue* pqueue) {
+void Queue_resize_$$$$(Queue_$$$$* pqueue) {
 	const int front = pqueue->front, rear = pqueue->rear, capacity = pqueue->capacity;
 	if (front - rear == 1 || front - rear == 1 - capacity) {
-		pqueue->items = realloc(pqueue->items, (pqueue->capacity = capacity * 2) * sizeof(Element)); if (!pqueue->items) exit(1);
+		pqueue->items = realloc(pqueue->items, (pqueue->capacity = capacity * 2) * sizeof($$$$)); if (!pqueue->items) exit(1);
 		if (front < rear) return;
 		else if (rear <= capacity - front) {
 			for (int i = 0; i < rear; i++) { pqueue->items[i + capacity] = pqueue->items[i]; }
@@ -41,44 +33,31 @@ void AQ_resize(ArrayQueue* pqueue) {
 		}
 	}
 }
-#endif
-void AQ_push(ArrayQueue* pqueue, Element item) {
-#ifdef AUTOMATIC_RESIZE
-	AQ_resize(pqueue);
-#endif
+void Queue_push_$$$$(Queue_$$$$* pqueue, $$$$ item) {
+	Queue_resize_$$$$(pqueue);
 	const int rear = pqueue->rear;
 	pqueue->rear = (rear + 1) & (pqueue->capacity - 1);
 	pqueue->items[rear] = item;
 }
-Element AQ_pop(ArrayQueue* pqueue) {
+$$$$ Queue_pop_$$$$(Queue_$$$$* pqueue) {
 	const int front = pqueue->front;
 	pqueue->front = (front + 1) & (pqueue->capacity - 1);
 	return pqueue->items[front];
 }
-Element AQ_front(const ArrayQueue* pqueue) {
+$$$$ Queue_front_$$$$(const Queue_$$$$* pqueue) {
 	return pqueue->items[pqueue->front];
 }
-
-/*
-int AQ_full(const ArrayQueue* pqueue) {
-	return pqueue->front == ((pqueue->rear + 1) & (pqueue->capacity - 1));
-}
-int AQ_size(const ArrayQueue* pqueue) {
+int Queue_size_$$$$(const Queue_$$$$* pqueue) {
 	return (pqueue->rear - pqueue->front + pqueue->capacity) & (pqueue->capacity - 1);
 }
-*/
-
-
 
 /*
-* 2024-01-04 Thu
-* The optimized Queue
-*
+* 2024.01.04 Thu
+* The optimized Queue:
 * By replacing the % operation with bitwise &,
 * performance is very close to linear queue.
 *
-*
-* 2024-01-08 Mon
+* 2024.01.08 Mon
 * Camel cases changed to snake cases
 *
 * 2024.1.22 Mon
@@ -86,4 +65,7 @@ int AQ_size(const ArrayQueue* pqueue) {
 *
 * 2024.2.11 Sun
 * Dynamic resize support (But, unlike stack and heap, it is slow)
+*
+* 2024.05.08
+* Remake like C++ STL
 */

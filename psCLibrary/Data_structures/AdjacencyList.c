@@ -1,5 +1,3 @@
-#include <stdlib.h>
-
 typedef struct _GNode {
 	union { struct { int id, weight; }; struct _GNode* tail; };
 	struct _GNode* next;
@@ -12,7 +10,7 @@ typedef struct {
 	int edgecount;
 } Graph;
 
-Graph* GR_new(int vtxsize, int edgesize) {
+Graph* Graph_new(int vtxsize, int edgesize) {
 	Graph* graph;
 	graph = malloc(sizeof(Graph)); if (!graph) exit(1);
 	graph->edges = calloc(edgesize + vtxsize, sizeof(GNode)); if (!graph->edges) exit(1);
@@ -25,11 +23,11 @@ Graph* GR_new(int vtxsize, int edgesize) {
 	}
 	return graph;
 }
-void GR_delete(Graph* graph) {
+void Graph_delete(Graph* graph) {
 	free(graph->edges);
 	free(graph);
 }
-void GR_insert(Graph* graph, int from, int to, int weight) {
+void Graph_insert(Graph* graph, int from, int to, int weight) {
 	graph->edges[graph->edgecount] = (GNode){ .id = to, .weight = weight, .next = &graph->edges[from] };
 	graph->edges[from].tail->next = &graph->edges[graph->edgecount];
 	graph->edges[from].tail = &graph->edges[graph->edgecount++];
@@ -217,9 +215,10 @@ void Topological_Sort(int sorted[], const Graph* graph) {
 * 2024.1.22 Mon, change to snake cases
 * 2024.1.29 Mon, examples renewal
 * 2024.2.12 Mon, Using union to represent tail: save more memory space
+* 2024.5.8  Wed, include statement deleted.
 */
 
 /*
 GNode* const head = graph->tails[vtx]->next; //Slower
-GNode* const head = &graph->edges[vtx];     //Faster (in TSP, difference is small)
+GNode* const head = &graph->edges[vtx];      //Faster (in TSP, difference is small)
 */

@@ -59,3 +59,6 @@ x64/
 
 # exercises
 _exercise*/
+
+# python
+.ipynb_checkpoints/
