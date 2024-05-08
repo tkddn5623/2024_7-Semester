@@ -1,52 +1,51 @@
-#include <stdlib.h>
-
 #define HASH_EMPTY (1 << 31)
 
 typedef struct {
-	int key;
+	$$$$ key;
 	int value;
-} Keypair;
+} Keypair_$$$$;
 
 typedef struct {
-	Keypair* bucket;
+	Keypair_$$$$* bucket;
 	int bucketbits;
-#ifdef AUTOMATIC_RESIZE
 	int bucketload;
-#endif
-} Hashtable;
+} Hashtable_$$$$;
 
-int tiny_hash_i32(unsigned int k, int bits) {
-	return (k * 2654435769u) >> (32 - bits);
+int tiny_hash_str(const char str[], int bits) {
+	unsigned int h = 0;
+	char ch;
+	while ((ch = *str++)) { h = h * 9181u + ch; }
+	return h & ((1 << bits) - 1);
 }
-Hashtable* HT_new(int required_bucketsize) {
-	Hashtable* ht;
-	int bucketbits;
-	for (bucketbits = 4; (1 << bucketbits) < required_bucketsize; bucketbits++);
-	ht = calloc(1, sizeof(Hashtable)); if (!ht) exit(1);
-	ht->bucket = calloc(1LL << bucketbits, sizeof(Keypair)); if (!ht->bucket) exit(1);
-	ht->bucketbits = bucketbits;
-	for (int sz = 1 << bucketbits, i = 0; i < sz; i++) { ht->bucket[i].key = HASH_EMPTY; }
+int tiny_hash_i64(unsigned long long k, int bits) {
+	return (k * 12345678912345678921llu) >> (64 - bits);
+}
+int tiny_hash_i32(unsigned int k, int bits) {
+	return (k * 1234567891u) >> (32 - bits);
+}
+Hashtable_$$$$* Hashtable_new_$$$$() {
+	Hashtable_$$$$* ht = calloc(1, sizeof(Hashtable_$$$$)); if (!ht) exit(1);
+	ht->bucket = calloc(16, sizeof(Keypair_$$$$)); if (!ht->bucket) exit(1);
+	ht->bucketbits = 4;
+	for (int sz = 16, i = 0; i < sz; i++) { ht->bucket[i].key = HASH_EMPTY; }
 	return ht;
 }
-void HT_delete(Hashtable* ht) {
+void Hashtable_delete_$$$$(Hashtable_$$$$* ht) {
 	free(ht->bucket);
 	free(ht);
 }
-Keypair* HT_find(const Hashtable* ht, int key) {
-	for (int sz = 1 << ht->bucketbits, index = tiny_hash_i32(key, ht->bucketbits); ; index = (index + 1) & (sz - 1)) {
-		int key2 = ht->bucket[index].key;
-		if (key2 == HASH_EMPTY || key2 == key) return &ht->bucket[index];
-	}
-	return NULL;
+int Hashtable_compare_$$$$(const $$$$ _A, const $$$$ _B) {
+	return _A - _B;         // Integer
+	// while (*_A && *_A == *_B) _A++, _B++;
+	// return *_A - *_B;    // String
 }
-#ifdef AUTOMATIC_RESIZE
-void HT_resize(Hashtable* ht) {
+void Hashtable_resize_$$$$(Hashtable_$$$$* ht) {
 	const int bits2 = ht->bucketbits + 1, sz = 1 << bits2;
-	Keypair* bucket2 = calloc(sz, sizeof(Keypair)); if (!bucket2) exit(1);
+	Keypair_$$$$* bucket2 = calloc(sz, sizeof(Keypair_$$$$)); if (!bucket2) exit(1);
 	for (int i = 0; i < sz; i++) { bucket2[i].key = HASH_EMPTY; }
 	for (int j = sz / 2, i = 0; i < j; i++) {
 		if (ht->bucket[i].key == HASH_EMPTY) continue;
-		for (int index = tiny_hash_i32(ht->bucket[i].key, bits2); ; index = (index + 1) & (sz - 1)) {
+		for (int index = tiny_hash_str(ht->bucket[i].key, bits2); ; index = (index + 1) & (sz - 1)) {
 			if (bucket2[index].key == HASH_EMPTY) { bucket2[index] = ht->bucket[i]; break; }
 		}
 	}
@@ -54,30 +53,26 @@ void HT_resize(Hashtable* ht) {
 	ht->bucket = bucket2;
 	ht->bucketbits = bits2;
 }
-#endif
-void HT_insert_or_change(Hashtable* ht, int key, int value) {
-	for (int sz = 1 << ht->bucketbits, index = tiny_hash_i32(key, ht->bucketbits); ; index = (index + 1) & (sz - 1)) {
-		int key2 = ht->bucket[index].key;
+Keypair_$$$$* Hashtable_find_$$$$(const Hashtable_$$$$* ht, $$$$ key) {
+	for (int sz = 1 << ht->bucketbits, index = tiny_hash_str(key, ht->bucketbits); ; index = (index + 1) & (sz - 1)) {
+		$$$$ key2 = ht->bucket[index].key;
+		if (key2 == HASH_EMPTY || !Hashtable_compare_$$$$(key, key2)) return &ht->bucket[index];
+	}
+	return NULL;
+}
+void Hashtable_insert_or_change_$$$$(Hashtable_$$$$* ht, $$$$ key, int value) {
+	for (int sz = 1 << ht->bucketbits, index = tiny_hash_str(key, ht->bucketbits); ; index = (index + 1) & (sz - 1)) {
+		$$$$ key2 = ht->bucket[index].key;
 		if (key2 == HASH_EMPTY) {
-			ht->bucket[index] = (Keypair){ key,value };
-#ifdef AUTOMATIC_RESIZE
-			if (++ht->bucketload > sz / 2) HT_resize(ht);
-#endif
+			ht->bucket[index] = (Keypair_$$$$){ key,value };
+			if (++ht->bucketload > sz / 2) Hashtable_resize_$$$$(ht);
 			return;
 		}
-		if (key2 == key) { ht->bucket[index].value += value; return; }
+		if (!Hashtable_compare_$$$$(key, key2)) { ht->bucket[index].value += value; return; }
 	}
 }
 
-int tiny_hash_str(const char str[], int bits) {
-	unsigned int h = 0;
-	char ch;
-	while (ch = (*str++)) { h = (h + ch) * 5381u + ch; }
-	return h & ((1 << bits) - 1);
-}
-int tiny_hash_i64(unsigned long long k, int bits) {
-	return (k * 11400714819323198485llu) >> (64 - bits);
-}
+
 
 /*
 * When there is no unused key (valid version)

@@ -1,5 +1,5 @@
-void string_getline(char* dest) {
-	for (*dest = 0, fgets(dest, BUFMAX, stdin); *dest >= ' '; dest++);; *dest = 0;
+void string_getline(char* dest, int max) {
+	for (*dest = 0, fgets(dest, max, stdin); *dest >= ' '; dest++);; *dest = 0;
 }
 int string_tokenizer(char* tokens[], char* str) {
 	int ch, i = 0;
