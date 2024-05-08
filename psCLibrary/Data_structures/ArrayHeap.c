@@ -1,7 +1,7 @@
 typedef struct {
 	int value;
 	int priority;
-} HNode;
+} $$$$;
 
 typedef struct {
 	$$$$* items;
@@ -24,13 +24,11 @@ int Heap_empty_$$$$(const Heap_$$$$* pheap) {
 }
 int Heap_compare_$$$$(const $$$$ _A, const $$$$ _B) {
 	return _A.priority - _B.priority; // Minheap
-	// while (*_A && *_A == *_B) _A++, _B++;
-	// return *_A - *_B;
+	/*while (*_A && *_A == *_B) _A++, _B++;
+	return *_A - *_B;*/
 }
 void Heap_push_$$$$(Heap_$$$$* pheap, $$$$ item) {
-	if (pheap->size == pheap->capacity - 1) {
-		pheap->items = realloc(pheap->items, (pheap->capacity *= 2) * sizeof($$$$)); if (!pheap->items) exit(1);
-	}
+	if (pheap->size == pheap->capacity - 1 && !(pheap->items = realloc(pheap->items, (pheap->capacity *= 2) * sizeof($$$$)))) exit(1);
 	int parent, child = pheap->size + 1;
 	while (child > 1) {
 		if (Heap_compare_$$$$(pheap->items[(parent = child / 2)], item) <= 0) break;

@@ -62,3 +62,6 @@ _exercise*/
 
 # python
 .ipynb_checkpoints/
+
+# windows NT links
+*.lnk

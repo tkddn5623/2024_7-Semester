@@ -19,9 +19,7 @@ int Stack_empty_$$$$(const Stack_$$$$* pstack) {
 	return pstack->top == -1;
 }
 void Stack_push_$$$$(Stack_$$$$* pstack, $$$$ item) {
-	if (pstack->top == pstack->capacity - 1) {
-		pstack->items = realloc(pstack->items, (pstack->capacity *= 2) * sizeof($$$$)); if (!pstack->items) exit(1);
-	}
+	if (pstack->top == pstack->capacity - 1 && !(pstack->items = realloc(pstack->items, (pstack->capacity *= 2) * sizeof($$$$)))) exit(1);
 	pstack->items[++pstack->top] = item;
 }
 $$$$ Stack_pop_$$$$(Stack_$$$$* pstack) {

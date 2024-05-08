@@ -1,5 +1,3 @@
-#include <stdlib.h>
-
 #define MAXCOL (26)
 
 typedef struct _TreeNode {
@@ -10,18 +8,14 @@ typedef struct _TreeNode {
 typedef struct {
 	TNode* nodes;
 	int len;
-#ifdef AUTOMATIC_RESIZE
 	int capacity;
-#endif
 } Trie;
 
-Trie* Trie_new(int size) {
+Trie* Trie_new() {
 	Trie* t = malloc(sizeof(Trie)); if (!t) exit(1);
-	t->nodes = calloc(size, sizeof(TNode)); if (!t->nodes) exit(1);
+	t->nodes = calloc(16, sizeof(TNode)); if (!t->nodes) exit(1);
 	t->len = 1;
-#ifdef AUTOMATIC_RESIZE
-	t->capacity = size;
-#endif
+	t->capacity = 16;
 	return t;
 }
 void Trie_delete(Trie* trie) {
@@ -32,12 +26,8 @@ void Trie_insert(Trie* trie, const char* str) {
 	int value, cur, len = trie->len;
 	for (cur = 0; (value = *str++ - '0') >= 0; cur = trie->nodes[cur].next[value]) {
 		if (trie->nodes[cur].next[value] == 0) {
-#ifdef AUTOMATIC_RESIZE
-			if (len == trie->capacity) {
-				trie->nodes = realloc(trie->nodes, (trie->capacity *= 2) * sizeof(TNode)); if (!trie->nodes) exit(1);
-			}
+			if (len == trie->capacity && !(trie->nodes = realloc(trie->nodes, (trie->capacity *= 2) * sizeof(TNode)))) exit(1);
 			trie->nodes[len] = (TNode){ 0 };
-#endif
 			trie->nodes[cur].next[value] = len++;
 			trie->nodes[cur].state |= 0x2;
 
@@ -67,4 +57,7 @@ int _Trie_search(TNode* trie_nodes, int cur) {
 *
 * 2024.2.13 Tue
 * Resizable trie
+*
+* 2024.5.9 Thu
+* Non-resizable mode has been removed.
 */
