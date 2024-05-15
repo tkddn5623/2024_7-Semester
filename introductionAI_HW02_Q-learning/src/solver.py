@@ -1,0 +1,450 @@
+import time
+import random
+import logging
+from heapq import heappop, heappush
+from src.maze import Maze
+
+logging.basicConfig(level=logging.DEBUG)
+
+
+class Solver(object):
+    '''Base class for solution methods.
+    Every new solution method should override the solve method.
+
+    Attributes:
+        maze (list): The maze which is being solved.
+        neighbor_method:
+        quiet_mode: When enabled, information is not outputted to the console
+
+    '''
+
+    def __init__(self, maze, quiet_mode, neighbor_method):
+        logging.debug('Class Solver ctor called')
+
+        self.maze = maze
+        self.neighbor_method = neighbor_method
+        self.name = ''
+        self.quiet_mode = quiet_mode
+
+    def solve(self):
+        logging.debug('Class: Solver solve called')
+        raise NotImplementedError
+
+    def get_name(self):
+        logging.debug('Class Solver get_name called')
+        raise self.name
+
+    def get_path(self):
+        logging.debug('Class Solver get_path called')
+        return self.path
+
+
+class Q_learning(Solver):
+
+    def __init__(self, maze, quiet_mode=False, neighbor_method='brute-force'):
+        logging.debug('Class Q_learning ctor called')
+
+        self.name = 'Q_learning'
+
+        super().__init__(maze, neighbor_method, quiet_mode)
+
+    def q_learning(self):
+        pass
+
+    def get_reward(self, current_state, action, next_state, neighbour_coors_len):
+        if current_state == self.maze.exit_coor:
+            return 100.0
+        elif neighbour_coors_len == 1:
+            return -1.0
+        else:
+            return -0.1
+
+    def solve(self):
+        logging.debug('Class Q_learning solve called')
+        # current_level = [(0, self.maze.entry_coor[0], self.maze.entry_coor[1])]  # Change to list -> heap
+        path = []
+
+        # print('\nSolving the maze with Q_learning search...')
+        time_start = time.process_time()
+        self.visited = [[-1 for j in range(self.maze.num_cols)] for i in range(self.maze.num_rows)]
+
+        k_curr, l_curr = self.maze.entry_coor[0], self.maze.entry_coor[1]
+
+        for i in range(10000):
+            path.append(((k_curr, l_curr), False))
+            # print(f'current: {k_curr}, {l_curr}')
+            self.visited[k_curr][l_curr] = i
+
+            if (k_curr, l_curr) == self.maze.exit_coor:
+                return path
+
+            neighbour_coors = self.maze.find_neighbours(k_curr, l_curr)
+            neighbour_coors = self.maze.validate_neighbours_solve(
+                neighbour_coors,
+                k_curr,
+                l_curr,
+                self.maze.exit_coor[0],
+                self.maze.exit_coor[1],
+                self.neighbor_method,
+            )
+
+            action_num = -1
+            picked_next = (0, 0)
+
+            if random.random() > self.er:  # Greedy
+                picked_value = -100000000
+
+                for coor in neighbour_coors:
+                    diff = (coor[0] - k_curr, coor[1] - l_curr)
+
+                    if diff == (1, 0) and self.qtable[k_curr][l_curr][0] > picked_value:  # Action UP
+                        picked_value = self.qtable[k_curr][l_curr][0]
+                        picked_next = coor
+                        action_num = 0
+                    elif diff == (-1, 0) and self.qtable[k_curr][l_curr][1] > picked_value:  # Action DOWN
+                        picked_value = self.qtable[k_curr][l_curr][1]
+                        picked_next = coor
+                        action_num = 1
+                    elif diff == (0, 1) and self.qtable[k_curr][l_curr][2] > picked_value:  # Action RIGHT
+                        picked_value = self.qtable[k_curr][l_curr][2]
+                        picked_next = coor
+                        action_num = 2
+                    elif diff == (0, -1) and self.qtable[k_curr][l_curr][3] > picked_value:  # Action LEFT
+                        picked_value = self.qtable[k_curr][l_curr][3]
+                        picked_next = coor
+                        action_num = 3
+
+            else:
+                picked_next = random.choice(neighbour_coors)
+                diff = (picked_next[0] - k_curr, picked_next[1] - l_curr)
+
+                if diff == (1, 0):  # Action UP
+                    action_num = 0
+                elif diff == (-1, 0):  # Action DOWN
+                    action_num = 1
+                elif diff == (0, 1):  # Action RIGHT
+                    action_num = 2
+                elif diff == (0, -1):  # Action LEFT
+                    action_num = 3
+
+            # print('---')
+            # print(self.get_reward((k_curr, l_curr), action_num, picked_next))
+            # print(self.df * max(self.qtable[picked_next[0]][picked_next[1]]))
+            # print(-self.qtable[k_curr][l_curr][action_num])
+
+            max_of_nextQ = -10000000
+
+            for j in self.qtable[picked_next[0]][picked_next[1]]:
+                if j == 0:
+                    continue
+                if j > max_of_nextQ:
+                    max_of_nextQ = j
+
+            if max_of_nextQ == -10000000:
+                max_of_nextQ = 0
+
+            # print(self.qtable[picked_next[0]][picked_next[1]])
+            # print('mx of q', max_of_nextQ)
+            # print('vs, ', max(self.qtable[picked_next[0]][picked_next[1]]))
+
+            self.qtable[k_curr][l_curr][action_num] += self.lr * (
+                self.get_reward((k_curr, l_curr), action_num, picked_next, len(neighbour_coors))
+                + (self.df * max_of_nextQ - self.qtable[k_curr][l_curr][action_num])
+            )
+            # print('Now, next qt is ', self.qtable[k_curr][l_curr][action_num])
+
+            k_curr, l_curr = picked_next
+
+        # print('search fail (early stopping)')
+        logging.debug('Class Q_learning leaving solve')
+        return path
+
+
+class UniformCost(Solver):
+
+    def __init__(self, maze, quiet_mode=False, neighbor_method='brute-force'):
+        logging.debug('Class UniformCost ctor called')
+
+        self.name = 'Uniform Cost'
+        super().__init__(maze, neighbor_method, quiet_mode)
+
+    def solve(self):
+        logging.debug('Class UniformCost solve called')
+        current_level = [(0, self.maze.entry_coor[0], self.maze.entry_coor[1])]  # Change to list -> heap
+        path = []
+
+        print('\nSolving the maze with uniform-cost search...')
+        time_start = time.process_time()
+
+        while True:
+            while current_level:
+                dist_curr, k_curr, l_curr = heappop(current_level)
+                self.maze.grid[k_curr][l_curr].visited = True
+                path.append(((k_curr, l_curr), False))
+                print(f'current: {k_curr}, {l_curr}, dist: {dist_curr}')
+
+                if (k_curr, l_curr) == self.maze.exit_coor:
+                    if not self.quiet_mode:
+                        print('Number of moves performed: {}'.format(len(path)))
+                        print('Execution time for algorithm: {:.4f}'.format(time.process_time() - time_start))
+                    return path
+
+                neighbour_coors = self.maze.find_neighbours(k_curr, l_curr)
+                neighbour_coors = self.maze.validate_neighbours_solve(
+                    neighbour_coors,
+                    k_curr,
+                    l_curr,
+                    self.maze.exit_coor[0],
+                    self.maze.exit_coor[1],
+                    self.neighbor_method,
+                )
+
+                if neighbour_coors is not None:
+                    for coor in neighbour_coors:
+                        heappush(current_level, (dist_curr + 1.1 * abs((coor[0] - k_curr)) + 0.9 * abs((coor[1] - l_curr)), coor[0], coor[1]))
+        logging.debug('Class UniformCost leaving solve')
+
+
+class AStar(Solver):
+
+    def __init__(self, maze, quiet_mode=False, neighbor_method='brute-force'):
+        logging.debug('Class AStar ctor called')
+
+        self.name = 'AStar'
+        super().__init__(maze, neighbor_method, quiet_mode)
+
+    def solve(self):
+        logging.debug('Class AStar solve called')
+        current_level = [
+            (
+                1.1 * abs((self.maze.exit_coor[0] - self.maze.entry_coor[0])) + 0.9 * abs((self.maze.exit_coor[1] - self.maze.entry_coor[1])),
+                0,
+                self.maze.entry_coor[0],
+                self.maze.entry_coor[1],
+            )
+        ]  # Change to list -> heap
+        path = []
+
+        print('\nSolving the maze with A* search...')
+        time_start = time.process_time()
+
+        while True:
+            while current_level:
+                eval_curr, dist_curr, k_curr, l_curr = heappop(current_level)
+                self.maze.grid[k_curr][l_curr].visited = True
+                path.append(((k_curr, l_curr), False))
+                print(f'current: {k_curr}, {l_curr}, dist: {dist_curr}, eval: {eval_curr}')
+
+                if (k_curr, l_curr) == self.maze.exit_coor:
+                    if not self.quiet_mode:
+                        print('Number of moves performed: {}'.format(len(path)))
+                        print('Execution time for algorithm: {:.4f}'.format(time.process_time() - time_start))
+                    return path
+
+                neighbour_coors = self.maze.find_neighbours(k_curr, l_curr)
+                neighbour_coors = self.maze.validate_neighbours_solve(
+                    neighbour_coors,
+                    k_curr,
+                    l_curr,
+                    self.maze.exit_coor[0],
+                    self.maze.exit_coor[1],
+                    self.neighbor_method,
+                )
+
+                if neighbour_coors is not None:
+                    for coor in neighbour_coors:
+                        heappush(
+                            current_level,
+                            (
+                                1.1 * abs((self.maze.exit_coor[0] - coor[0])) + 0.9 * abs((self.maze.exit_coor[1] - coor[1])),
+                                dist_curr + 1.1 * abs((coor[0] - k_curr)) + 0.9 * abs((coor[1] - l_curr)),
+                                coor[0],
+                                coor[1],
+                            ),
+                        )
+        logging.debug('Class AStar leaving solve')
+
+
+class BreadthFirst(Solver):
+
+    def __init__(self, maze, quiet_mode=False, neighbor_method='fancy'):
+        logging.debug('Class BreadthFirst ctor called')
+
+        self.name = 'Breadth First Recursive'
+        super().__init__(maze, neighbor_method, quiet_mode)
+
+    def solve(self):
+        '''Function that implements the breadth-first algorithm for solving the maze. This means that
+        for each iteration in the outer loop, the search visits one cell in all possible branches. Then
+        moves on to the next level of cells in each branch to continue the search.'''
+
+        logging.debug('Class BreadthFirst solve called')
+        current_level = [self.maze.entry_coor]  # Stack of cells at current level of search
+        path = list()  # To track path of solution cell coordinates
+
+        print('\nSolving the maze with breadth-first search...')
+        # time_start = time.process_time()
+        time_start = time.process_time()
+
+        while True:  # Loop until return statement is encountered
+            next_level = list()
+
+            while current_level:  # While still cells left to search on current level
+                k_curr, l_curr = current_level.pop(0)  # Search one cell on the current level
+                self.maze.grid[k_curr][l_curr].visited = True  # Mark current cell as visited
+                path.append(((k_curr, l_curr), False))  # Append current cell to total search path
+                print(f'{k_curr}, {l_curr}')
+
+                if (k_curr, l_curr) == self.maze.exit_coor:  # Exit if current cell is exit cell
+                    if not self.quiet_mode:
+                        print('Number of moves performed: {}'.format(len(path)))
+                        print('Execution time for algorithm: {:.4f}'.format(time.process_time() - time_start))
+                    return path
+
+                neighbour_coors = self.maze.find_neighbours(k_curr, l_curr)  # Find neighbour indicies
+                neighbour_coors = self.maze.validate_neighbours_solve(
+                    neighbour_coors,
+                    k_curr,
+                    l_curr,
+                    self.maze.exit_coor[0],
+                    self.maze.exit_coor[1],
+                    self.neighbor_method,
+                )
+
+                if neighbour_coors is not None:
+                    for coor in neighbour_coors:
+                        next_level.append(coor)  # Add all existing real neighbours to next search level
+
+            for cell in next_level:
+                current_level.append(cell)  # Update current_level list with cells for nex search level
+        logging.debug('Class BreadthFirst leaving solve')
+
+
+class BiDirectional(Solver):
+
+    def __init__(self, maze, quiet_mode=False, neighbor_method='fancy'):
+        logging.debug('Class BiDirectional ctor called')
+
+        super().__init__(maze, neighbor_method, quiet_mode)
+        self.name = 'Bi Directional'
+
+    def solve(self):
+        '''Function that implements a bidirectional depth-first recursive backtracker algorithm for
+        solving the maze, i.e. starting at the entry point and exit points where each search searches
+        for the other search path. NOTE: THE FUNCTION ENDS IN AN INFINITE LOOP FOR SOME RARE CASES OF
+        THE INPUT MAZE. WILL BE FIXED IN FUTURE.'''
+        logging.debug('Class BiDirectional solve called')
+
+        grid = self.maze.grid
+        k_curr, l_curr = self.maze.entry_coor  # Where to start the first search
+        p_curr, q_curr = self.maze.exit_coor  # Where to start the second search
+        grid[k_curr][l_curr].visited = True  # Set initial cell to visited
+        grid[p_curr][q_curr].visited = True  # Set final cell to visited
+        backtrack_kl = list()  # Stack of visited cells for backtracking
+        backtrack_pq = list()  # Stack of visited cells for backtracking
+        path_kl = list()  # To track path of solution and backtracking cells
+        path_pq = list()  # To track path of solution and backtracking cells
+
+        if not self.quiet_mode:
+            print('\nSolving the maze with bidirectional depth-first search...')
+        time_start = time.process_time()
+
+        while True:  # Loop until return statement is encountered
+            neighbours_kl = self.maze.find_neighbours(k_curr, l_curr)  # Find neighbours for first search
+            real_neighbours_kl = [neigh for neigh in neighbours_kl if not grid[k_curr][l_curr].is_walls_between(grid[neigh[0]][neigh[1]])]
+            neighbours_kl = [neigh for neigh in real_neighbours_kl if not grid[neigh[0]][neigh[1]].visited]
+
+            neighbours_pq = self.maze.find_neighbours(p_curr, q_curr)  # Find neighbours for second search
+            real_neighbours_pq = [neigh for neigh in neighbours_pq if not grid[p_curr][q_curr].is_walls_between(grid[neigh[0]][neigh[1]])]
+            neighbours_pq = [neigh for neigh in real_neighbours_pq if not grid[neigh[0]][neigh[1]].visited]
+
+            if len(neighbours_kl) > 0:  # If there are unvisited neighbour cells
+                backtrack_kl.append((k_curr, l_curr))  # Add current cell to stack
+                path_kl.append(((k_curr, l_curr), False))  # Add coordinates to part of search path
+                k_next, l_next = random.choice(neighbours_kl)  # Choose random neighbour
+                grid[k_next][l_next].visited = True  # Move to that neighbour
+                k_curr = k_next
+                l_curr = l_next
+
+            elif len(backtrack_kl) > 0:  # If there are no unvisited neighbour cells
+                path_kl.append(((k_curr, l_curr), True))  # Add coordinates to part of search path
+                k_curr, l_curr = backtrack_kl.pop()  # Pop previous visited cell (backtracking)
+
+            if len(neighbours_pq) > 0:  # If there are unvisited neighbour cells
+                backtrack_pq.append((p_curr, q_curr))  # Add current cell to stack
+                path_pq.append(((p_curr, q_curr), False))  # Add coordinates to part of search path
+                p_next, q_next = random.choice(neighbours_pq)  # Choose random neighbour
+                grid[p_next][q_next].visited = True  # Move to that neighbour
+                p_curr = p_next
+                q_curr = q_next
+
+            elif len(backtrack_pq) > 0:  # If there are no unvisited neighbour cells
+                path_pq.append(((p_curr, q_curr), True))  # Add coordinates to part of search path
+                p_curr, q_curr = backtrack_pq.pop()  # Pop previous visited cell (backtracking)
+
+            # Exit loop and return path if any opf the kl neighbours are in path_pq.
+            if any((True for n_kl in real_neighbours_kl if (n_kl, False) in path_pq)):
+                path_kl.append(((k_curr, l_curr), False))
+                path = [p_el for p_tuple in zip(path_kl, path_pq) for p_el in p_tuple]  # Zip paths
+                if not self.quiet_mode:
+                    print('Number of moves performed: {}'.format(len(path)))
+                    print('Execution time for algorithm: {:.4f}'.format(time.process_time() - time_start))
+                logging.debug('Class BiDirectional leaving solve')
+                return path
+
+            # Exit loop and return path if any opf the pq neighbours are in path_kl.
+            elif any((True for n_pq in real_neighbours_pq if (n_pq, False) in path_kl)):
+                path_pq.append(((p_curr, q_curr), False))
+                path = [p_el for p_tuple in zip(path_kl, path_pq) for p_el in p_tuple]  # Zip paths
+                if not self.quiet_mode:
+                    print('Number of moves performed: {}'.format(len(path)))
+                    print('Execution time for algorithm: {:.4f}'.format(time.process_time() - time_start))
+                logging.debug('Class BiDirectional leaving solve')
+                return path
+
+
+class DepthFirstBacktracker(Solver):
+    '''A solver that implements the depth-first recursive backtracker algorithm.'''
+
+    def __init__(self, maze, quiet_mode=False, neighbor_method='fancy'):
+        logging.debug('Class DepthFirstBacktracker ctor called')
+
+        super().__init__(maze, neighbor_method, quiet_mode)
+        self.name = 'Depth First Backtracker'
+
+    def solve(self):
+        logging.debug('Class DepthFirstBacktracker solve called')
+        k_curr, l_curr = self.maze.entry_coor  # Where to start searching
+        self.maze.grid[k_curr][l_curr].visited = True  # Set initial cell to visited
+        visited_cells = list()  # Stack of visited cells for backtracking
+        path = list()  # To track path of solution and backtracking cells
+        if not self.quiet_mode:
+            print('\nSolving the maze with depth-first search...')
+
+        time_start = time.time()
+
+        while (k_curr, l_curr) != self.maze.exit_coor:  # While the exit cell has not been encountered
+            neighbour_indices = self.maze.find_neighbours(k_curr, l_curr)  # Find neighbour indices
+            neighbour_indices = self.maze.validate_neighbours_solve(
+                neighbour_indices, k_curr, l_curr, self.maze.exit_coor[0], self.maze.exit_coor[1], self.neighbor_method
+            )
+
+            if neighbour_indices is not None:  # If there are unvisited neighbour cells
+                visited_cells.append((k_curr, l_curr))  # Add current cell to stack
+                path.append(((k_curr, l_curr), False))  # Add coordinates to part of search path
+                k_next, l_next = random.choice(neighbour_indices)  # Choose random neighbour
+                self.maze.grid[k_next][l_next].visited = True  # Move to that neighbour
+                k_curr = k_next
+                l_curr = l_next
+
+            elif len(visited_cells) > 0:  # If there are no unvisited neighbour cells
+                path.append(((k_curr, l_curr), True))  # Add coordinates to part of search path
+                k_curr, l_curr = visited_cells.pop()  # Pop previous visited cell (backtracking)
+
+        path.append(((k_curr, l_curr), False))  # Append final location to path
+        if not self.quiet_mode:
+            print('Number of moves performed: {}'.format(len(path)))
+            print('Execution time for algorithm: {:.4f}'.format(time.time() - time_start))
+
+        logging.debug('Class DepthFirstBacktracker leaving solve')
+        return path
