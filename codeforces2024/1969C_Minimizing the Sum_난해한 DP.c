@@ -23,7 +23,7 @@ void solveC(int arr[], int N, int K) {
 
 	dp[0][0] = 0LL;
 
-	for (int i = 0; i < N; i++) for (int j = 0; j <= K; j++) {
+	for (int i = 0; i < N; i++) for (int j = 0; j <= K && (i == 0 || j < i); j++) {
 		int A = (1 << 30);
 		for (int d = 0; i + d < N && j + d <= K; d++) {
 			A = MIN_i32(A, arr[i + d]);
