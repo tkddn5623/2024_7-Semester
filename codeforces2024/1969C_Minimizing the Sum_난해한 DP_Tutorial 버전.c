@@ -1,6 +1,16 @@
-// codeforces.com/contest/1969/problem/C
-// C. Minimizing the Sum
-// dp, implementation, *1700
+/*
+* 2024-05-22 Wed: Upsolving
+*
+* codeforces.com/contest/1969/problem/C
+* C. Minimizing the Sum
+* dp, implementation, *1700
+*
+* dp[10][5] = dp[9][5] + 1 * max(a[10] ~ a[10])
+*           = dp[8][4] + 2 * max(a[9]  ~ a[10])
+*           = dp[7][3] + 3 * max(a[8]  ~ a[10])
+*           ...
+*           = dp[4][0] + 6 * max(a[5]  ~ a[10])
+*/
 
 #define __USE_MINGW_ANSI_STDIO 0
 #include <stdio.h>
@@ -31,12 +41,7 @@ void solveC(int arr[], int N, int K) {
 		}
 	}
 
-	for (int i = K; i >= 0; i--) {
-		if (dp[N][i] < INF) {
-			printf("%lld\n", dp[N][i]);
-			break;
-		}
-	}
+	printf("%lld\n", dp[N][N - 1 <= K ? N - 1 : K]);
 }
 int main() {
 #ifndef ONLINE_JUDGE
