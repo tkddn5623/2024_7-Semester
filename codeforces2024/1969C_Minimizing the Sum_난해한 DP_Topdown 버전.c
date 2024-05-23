@@ -16,7 +16,9 @@
 #include <stdio.h>
 
 #define MAXN (300000)
+#define MAXK (10)
 #define INF  (1000000000000000000LL)
+
 
 int MIN_i32(int _A, int _B) {
 	return _A <= _B ? _A : _B;
@@ -24,37 +26,35 @@ int MIN_i32(int _A, int _B) {
 long long MIN_i64(long long _A, long long _B) {
 	return _A <= _B ? _A : _B;
 }
-int MIN_of(const int arr[], int left, int right) { // Or a segment tree
-	int m = 1 << 30;
-	for (int i = left; i <= right; i++) {
-		if (m > arr[i]) m = arr[i];
-	}
-	return m;
-}
-long long solveC_topdown(int arr[], long long dp[][11], int N, int K) {
+long long solveC_topdown(const int arr[], long long dp[][MAXK + 1], int N, int K) {
 	if (N <= 0 || K < 0) return INF;
 	if (dp[N][K] < INF) return dp[N][K];
 
 	long long min_value = INF;
+	int min_of_arr = 1 << 30;
 
 	for (int i = 0; (N - 1 - i) >= 1 && (K - i) >= 0; i++) {
 		long long A, B;
 		A = solveC_topdown(arr, dp, N - 1 - i, K - i);
-		B = (long long)(i + 1) * MIN_of(arr, N - 1 - i, N - 1);
+		min_of_arr = MIN_i32(min_of_arr, arr[N - 1 - i]);
+		B = (long long)(i + 1) * min_of_arr;
 		min_value = MIN_i64(min_value, A + B);
 	}
 
 	return dp[N][K] = min_value;
 }
-void solveC(int arr[], int N, int K) {
-	static long long dp[MAXN + 1][11];
+void solveC(const int arr[], int N, int K) {
+	static long long dp[MAXN + 1][MAXK + 1];
 
 	for (int i = 0; i <= N; i++) for (int j = 0; j <= K; j++) {
 		dp[i][j] = INF;
 	}
 
+	int min_of_arr = 1 << 30;
+
 	for (int i = 0; i <= K && i + 1 <= N; i++) {
-		dp[i + 1][i] = (long long)(i + 1) * MIN_of(arr, 0, i);
+		min_of_arr = MIN_i32(min_of_arr, arr[i]);
+		dp[i + 1][i] = (long long)(i + 1) * min_of_arr;
 	}
 
 	const int k = (N - 1 <= K) ? N - 1 : K;
