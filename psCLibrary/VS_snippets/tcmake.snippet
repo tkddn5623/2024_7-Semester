@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>C style TC make1</Title>
+      <Description>C style TC make1</Description>
+	  <Author>JungSangWoo</Author>
+      <Shortcut>tcmake</Shortcut>
+    </Header>
+    <Snippet>
+      <Code Language="Cpp">
+        <![CDATA[#include <stdlib.h>
+		void TCMAKE() {
+		FILE* fp = fopen("i.txt", "w"); if (!fp) exit(1);
+		int T, N;
+
+		srand(1);
+		T = 1;
+		N = 4;
+
+		fprintf(fp, "%d\n", T);
+		fprintf(fp, "%d\n", N);
+
+		for (int i = 0; i < N; i++) {
+			int r = rand() % 10 + 1;
+			fprintf(fp, "%d ", r);
+		}
+
+		fprintf(fp, "\n");
+
+		fclose(fp);
+        }]]>
+      </Code>
+	  <Declarations>
+        <Literal>
+        </Literal>
+      </Declarations>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>
