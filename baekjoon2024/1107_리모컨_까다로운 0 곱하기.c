@@ -48,7 +48,7 @@ void solve1107(int available[], int N) {
 		return;
 	}
 
-	for (int x = idx_not_same; x >= 0; x--) {
+	for (int x = idx_not_same; x >= idx_not_same - 1 && x >= 0; x--) {
 		int candidate[2] = { -1, -1 };
 
 		for (int i = 1; i <= 9; i++) {

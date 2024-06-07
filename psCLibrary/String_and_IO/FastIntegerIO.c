@@ -10,7 +10,7 @@ static struct IOBuffer {
 } _buf;
 
 void write_int(int n) {
-	int m = 1000;
+	int m = 1000000000;
 	while (m > 1 && !(n / m)) { m /= 10; }
 	do { _buf.wb[_buf.wbi++] = '0' | n / m; n %= m; } while (m /= 10);
 	_buf.wb[_buf.wbi++] = '\n';
@@ -24,7 +24,7 @@ int read_int() {
 void read_map() {
 	struct stat st;
 	fstat(0, &st);
-	if ((_buf.rb = mmap(NULL, st.st_size + 1, PROT_READ, MAP_PRIVATE, 0, 0)) == MAP_FAILED)
+	if ((_buf.rb = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, 0, 0)) == MAP_FAILED)
 		_exit(1);
 }
 
@@ -38,7 +38,7 @@ static struct IOBuffer {
 } _buf;
 
 void write_int(int n) {
-    int j = 1000;
+    int j = 1000000000;
     if (n < 0) { _buf.wb[_buf.wbi++] = '-'; n = -n; }
     while (j > 1 && !(n / j)) { j /= 10; }
     do { _buf.wb[_buf.wbi++] = '0' | n / j; n %= j; } while (j /= 10);
@@ -65,6 +65,23 @@ void read_whole() {
 
 */
 
+/* Big buffer version
+
+int main() {
+	static char buf_stdin[1 << 17];
+	static char buf_stdout[1 << 17];
+	setvbuf(stdin, buf_stdin, _IOFBF, sizeof(buf_stdin));
+	setvbuf(stdout, buf_stdout, _IOFBF, sizeof(buf_stdout));
+	int N = read_int();
+	for (int i = 0; i < N; i++) {
+		int a = read_int(), b = read_int();
+		write_int(a + b);
+	}
+	return 0;
+}
+
+*/
+
 
 void solve15552() {
 	int T = read_int();
@@ -87,6 +104,8 @@ int main() {
 
 /*
 * 2024.1.20 Sat
-* 
 * Improve readability and convenience of use
+*
+* 2024.6.5  Wed
+* setvbuf ver added, default range changed for 1 billion
 */
