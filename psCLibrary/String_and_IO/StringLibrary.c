@@ -15,8 +15,8 @@ void IO_write_int(int n) {
     putchar('\n');
 }
 
-char buf_stdin[1 << 17];
-char buf_stdout[1 << 17];
+static char buf_stdin[1 << 17];
+static char buf_stdout[1 << 17];
 setvbuf(stdin, buf_stdin, _IOFBF, sizeof(buf_stdin));
 setvbuf(stdout, buf_stdout, _IOFBF, sizeof(buf_stdout));
 
