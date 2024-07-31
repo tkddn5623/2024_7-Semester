@@ -9,19 +9,19 @@ static struct IOBuffer {
     char* wb;
 } _buf;
 
-void write_int(int n) {
-	int m = 1000000000;
-	while (m > 1 && !(n / m)) { m /= 10; }
-	do { _buf.wb[_buf.wbi++] = '0' | n / m; n %= m; } while (m /= 10);
-	_buf.wb[_buf.wbi++] = '\n';
-}
-int read_int() {
+int IO_read_int() {
 	int a, b;
 	while ((a = _buf.rb[_buf.rbi++]) && a < '0');
 	for (b = a & 0xf; (a = _buf.rb[_buf.rbi++]) >= '0'; b = b * 10 + (a & 0xf));
 	return b;
 }
-void read_map() {
+void IO_write_int(int n) {
+	int m = 1000000000;
+	while (m > 1 && !(n / m)) { m /= 10; }
+	do { _buf.wb[_buf.wbi++] = '0' | n / m; n %= m; } while (m /= 10);
+	_buf.wb[_buf.wbi++] = '\n';
+}
+void IO_read_map() {
 	struct stat st;
 	fstat(0, &st);
 	if ((_buf.rb = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, 0, 0)) == MAP_FAILED)
@@ -37,18 +37,18 @@ static struct IOBuffer {
     char* wb;
 } _buf;
 
-void write_int(int n) {
-    int j = 1000000000;
-    if (n < 0) { _buf.wb[_buf.wbi++] = '-'; n = -n; }
-    while (j > 1 && !(n / j)) { j /= 10; }
-    do { _buf.wb[_buf.wbi++] = '0' | n / j; n %= j; } while (j /= 10);
-    _buf.wb[_buf.wbi++] = '\n';
-}
-int read_int() {
+int IO_read_int() {
     int a, b, c;
     while ((c = _buf.rb[_buf.rbi++]) && c < '-');
     for (b = c < '0' ? 0 : c & 0xf; (a = _buf.rb[_buf.rbi++]) >= '0'; b = b * 10 + (a & 0xf));
     return c == '-' ? -b : b;
+}
+void IO_write_int(int n) {
+    int m = 1000000000;
+    if (n < 0) { _buf.wb[_buf.wbi++] = '-'; n = -n; }
+    while (m > 1 && !(n / m)) { m /= 10; }
+    do { _buf.wb[_buf.wbi++] = '0' | n / m; n %= m; } while (m /= 10);
+    _buf.wb[_buf.wbi++] = '\n';
 }
 
 */
@@ -72,10 +72,10 @@ int main() {
 	static char buf_stdout[1 << 17];
 	setvbuf(stdin, buf_stdin, _IOFBF, sizeof(buf_stdin));
 	setvbuf(stdout, buf_stdout, _IOFBF, sizeof(buf_stdout));
-	int N = read_int();
+	int N = IO_read_int();
 	for (int i = 0; i < N; i++) {
-		int a = read_int(), b = read_int();
-		write_int(a + b);
+		int a = IO_read_int(), b = IO_read_int();
+		IO_write_int(a + b);
 	}
 	return 0;
 }
@@ -84,12 +84,12 @@ int main() {
 
 
 void solve15552() {
-	int T = read_int();
+	int T = IO_read_int();
 	int a, b;
 	for (int i = 0; i < T; i++) {
-		a = read_int();
-		b = read_int();
-		write_int(a + b);
+		a = IO_read_int();
+		b = IO_read_int();
+		IO_write_int(a + b);
 	}
 	write(1, _buf.wb, _buf.wbi);
 }
@@ -108,4 +108,7 @@ int main() {
 *
 * 2024.6.5  Wed
 * setvbuf ver added, default range changed for 1 billion
+*
+* 2024.7.31 Wed
+* Some signature names changed
 */

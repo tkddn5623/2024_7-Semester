@@ -8,10 +8,11 @@ int IO_read_int() {
 	return c == '-' ? -b : b;
 }
 void IO_write_int(int n) {
-	int m = 1000000000;
-	while (m > 1 && !(n / m)) { m /= 10; }
-	do { putchar('0' | n / m); n %= m; } while (m /= 10);
-	putchar('\n');
+    int j = 1000000000;
+    if (n < 0) { putchar('-'); n = -n; }
+    while (j > 1 && !(n / j)) { j /= 10; }
+    do { putchar('0' | n / j); n %= j; } while (j /= 10);
+    putchar('\n');
 }
 
 char buf_stdin[1 << 17];
@@ -62,4 +63,7 @@ int string_parse_int(const char* str) {
 * 2024.2.5 Mon
 * <string.h> imitation
 * Reference of {compare, copy}: bloodstrawberry.tistory.com
+*
+* 2024.7.31 Wed
+* Some signature names changed
 */
