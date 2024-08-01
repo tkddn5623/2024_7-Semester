@@ -169,41 +169,37 @@ int travelingSalesman(Graph* graph) {
     return _travelingSalesman_impl(graph, memo, HOME, 1 << HOME);
 }
 
-/////// Topological Sort Snippet (2024.1.29) ////////////////////////////////////////
+/////// Topological Sort Snippet (2024.7.30) ////////////////////////////////////////
 
-void _Topological_Sort_Indgree(int indgree[], const Graph* graph) {
-	int vtxsize = graph->vtxsize;
-	int edgecount = graph->edgecount;
+void Topological_Sort_Indgree(int indgree[], const Graph* graph) {
 	const GNode* edges = graph->edges;
-	for (int i = vtxsize; i < edgecount; i++) {
+	for (int j = graph->edgecount, i = graph->vtxsize; i < j; i++) {
 		indgree[edges[i].id]++;
 	}
 }
 void Topological_Sort(int sorted[], const Graph* graph) {
+	static int indgree[MAXN + 1];
 	const int vtxmax = graph->vtxsize - 1;
 	int sorted_len = 0;
-	int* indgree;
 
-	if (!(indgree = calloc(vtxmax + 1, sizeof(int)))) exit(1);
-	ArrayQueue* queue = AQ_new(vtxmax + 1);
-	_Topological_Sort_Indgree(indgree, graph);
+	Queue* queue = Queue_new();
+	Topological_Sort_Indgree(indgree, graph);
 
 	for (int i = 1; i <= vtxmax; i++) {
 		if (indgree[i] > 0) continue;
-		AQ_push(queue, i);
+		Queue_push(queue, i);
 	}
 
-	while (!AQ_empty(queue)) {
-		int vtx = AQ_pop(queue);
+	while (!Queue_empty(queue)) {
+		int vtx = Queue_pop(queue);
 		sorted[sorted_len++] = vtx;
 		for (GNode* head = &graph->edges[vtx], *cur = head->next; cur != head; cur = cur->next) {
 			if (--indgree[cur->id] > 0) continue;
-			AQ_push(queue, cur->id);
+			Queue_push(queue, cur->id);
 		}
 	}
 
-	AQ_delete(queue);
-	free(indgree);
+	Queue_delete(queue);
 }
 
 
@@ -216,6 +212,7 @@ void Topological_Sort(int sorted[], const Graph* graph) {
 * 2024.1.29 Mon, examples renewal
 * 2024.2.12 Mon, Using union to represent tail: save more memory space
 * 2024.5.8  Wed, include statement deleted.
+* 2024.7.30 Tue, Topological_Sort 'size-free queue' library added
 */
 
 /*
