@@ -1,7 +1,7 @@
 #define HASH_EMPTY (1 << 31)
 
 typedef struct {
-	$$$$ key;
+	@@@@ key;
 	int value;
 } Keypair_$$$$;
 
@@ -34,7 +34,7 @@ void Hashtable_delete_$$$$(Hashtable_$$$$* ht) {
 	free(ht->bucket);
 	free(ht);
 }
-int Hashtable_compare_$$$$(const $$$$ _A, const $$$$ _B) {
+int Hashtable_compare_$$$$(const @@@@ _A, const @@@@ _B) {
 	return _A - _B;
 	/*while (*_A && *_A == *_B) _A++, _B++;
 	return *_A - *_B;*/
@@ -53,16 +53,16 @@ void Hashtable_resize_$$$$(Hashtable_$$$$* ht) {
 	ht->bucket = bucket2;
 	ht->bucketbits = bits2;
 }
-Keypair_$$$$* Hashtable_find_$$$$(const Hashtable_$$$$* ht, $$$$ key) {
+Keypair_$$$$* Hashtable_find_$$$$(const Hashtable_$$$$* ht, @@@@ key) {
 	for (int sz = 1 << ht->bucketbits, index = tiny_hash_str(key, ht->bucketbits); ; index = (index + 1) & (sz - 1)) {
-		$$$$ key2 = ht->bucket[index].key;
+		@@@@ key2 = ht->bucket[index].key;
 		if (key2 == HASH_EMPTY || !Hashtable_compare_$$$$(key, key2)) return &ht->bucket[index];
 	}
 	return NULL;
 }
-void Hashtable_insert_or_change_$$$$(Hashtable_$$$$* ht, $$$$ key, int value) {
+void Hashtable_insert_or_change_$$$$(Hashtable_$$$$* ht, @@@@ key, int value) {
 	for (int sz = 1 << ht->bucketbits, index = tiny_hash_str(key, ht->bucketbits); ; index = (index + 1) & (sz - 1)) {
-		$$$$ key2 = ht->bucket[index].key;
+		@@@@ key2 = ht->bucket[index].key;
 		if (key2 == HASH_EMPTY) {
 			ht->bucket[index] = (Keypair_$$$$){ key,value };
 			if (++ht->bucketload > sz / 2) Hashtable_resize_$$$$(ht);
@@ -80,7 +80,7 @@ void Hashtable_insert_or_change_$$$$(Hashtable_$$$$* ht, $$$$ key, int value) {
 
 
 typedef struct {
-	$$$$ key;
+	@@@@ key;
 	int value;
 	int valid;
 } Keypair_$$$$;
@@ -113,7 +113,7 @@ void Hashtable_delete_$$$$(Hashtable_$$$$* ht) {
 	free(ht->bucket);
 	free(ht);
 }
-int Hashtable_compare_$$$$(const $$$$ _A, const $$$$ _B) {
+int Hashtable_compare_$$$$(const @@@@ _A, const @@@@ _B) {
 	return _A - _B;          // Integer
 	//while (*_A && *_A == *_B) _A++, _B++;
 	//return *_A - *_B;      // String
@@ -131,16 +131,16 @@ void Hashtable_resize_$$$$(Hashtable_$$$$* ht) {
 	ht->bucket = bucket2;
 	ht->bucketbits = bits2;
 }
-Keypair_$$$$* Hashtable_find_$$$$(const Hashtable_$$$$* ht, $$$$ key) {
+Keypair_$$$$* Hashtable_find_$$$$(const Hashtable_$$$$* ht, @@@@ key) {
 	for (int sz = 1 << ht->bucketbits, index = tiny_hash_str(key, ht->bucketbits); ; index = (index + 1) & (sz - 1)) {
-		$$$$ key2 = ht->bucket[index].key;
+		@@@@ key2 = ht->bucket[index].key;
 		if (!ht->bucket[index].valid || !Hashtable_compare_$$$$(key, key2)) return &ht->bucket[index];
 	}
 	return NULL;
 }
-void Hashtable_insert_or_change_$$$$(Hashtable_$$$$* ht, $$$$ key, int value) {
+void Hashtable_insert_or_change_$$$$(Hashtable_$$$$* ht, @@@@ key, int value) {
 	for (int sz = 1 << ht->bucketbits, index = tiny_hash_str(key, ht->bucketbits); ; index = (index + 1) & (sz - 1)) {
-		$$$$ key2 = ht->bucket[index].key;
+		@@@@ key2 = ht->bucket[index].key;
 		if (!ht->bucket[index].valid) {
 			ht->bucket[index] = (Keypair_$$$$){ key,value,1 };
 			if (++ht->bucketload > sz / 2) Hashtable_resize_$$$$(ht);
