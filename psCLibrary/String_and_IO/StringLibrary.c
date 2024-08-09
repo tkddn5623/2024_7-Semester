@@ -29,6 +29,15 @@ int string_tokenizer(char* tokens[], char* str) {
 	} while (ch);
 	return i;
 }
+int string_parse_int(const char* str) {
+	int a, b, c;
+	while ((c = *str++) && c < '-');
+	for (b = c < '0' ? 0 : c & 0xf; (a = *str++) >= '0'; b = b * 10 + (a & 0xf));
+	return c == '-' ? -b : b;
+}
+
+// Note: The functions below do not support SIMD, 
+//       so they are slower than the standard library functions.
 int string_compare(const char* a, const char* b) {
 	while (*a && *a == *b) a++, b++;
 	return *a - *b;
@@ -41,12 +50,7 @@ int string_length(const char* a) {
 	while (*b) b++;
 	return b - a;
 }
-int string_parse_int(const char* str) {
-	int a, b, c;
-	while ((c = *str++) && c < '-');
-	for (b = c < '0' ? 0 : c & 0xf; (a = *str++) >= '0'; b = b * 10 + (a & 0xf));
-	return c == '-' ? -b : b;
-}
+
 
 /*
 // Tokenizer <string.h> version
@@ -66,4 +70,7 @@ int string_parse_int(const char* str) {
 *
 * 2024.7.31 Wed
 * Some signature names changed
+*
+* 2024.8.9 Fri
+* Added mention of SIMD
 */

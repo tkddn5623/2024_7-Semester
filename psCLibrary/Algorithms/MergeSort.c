@@ -1,7 +1,7 @@
-int MergeSort_compare_$$$$(const $$$$ _A, const $$$$ _B) {
+int MergeSort_compare_$$$$(const @@@@ _A, const @@@@ _B) {
 	return _A - _B;
 }
-void MergeSort_impl_$$$$($$$$ list[], $$$$ sorted[], const int left, const int right) {
+void MergeSort_impl_$$$$(@@@@ list[], @@@@ sorted[], const int left, const int right) {
 	if (left >= right) return;
 	const int mid = left + (right - left) / 2;
 	MergeSort_impl_$$$$(list, sorted, left, mid);
@@ -15,8 +15,8 @@ void MergeSort_impl_$$$$($$$$ list[], $$$$ sorted[], const int left, const int r
 	while (second <= right) sorted[idx++] = list[second++];
 	for (int i = left; i <= right; i++) list[i] = sorted[i];
 }
-void MergeSort_$$$$($$$$ list[], const int size) {
-	$$$$* sorted = calloc(size, sizeof($$$$)); if (!sorted) exit(1);
+void MergeSort_$$$$(@@@@ list[], const int size) {
+	@@@@* sorted = calloc(size, sizeof(@@@@)); if (!sorted) exit(1);
 	MergeSort_impl_$$$$(list, sorted, 0, size - 1);
 	free(sorted);
 }
