@@ -22,10 +22,9 @@ void Heap_delete_$$$$(Heap_$$$$* pheap) {
 int Heap_empty_$$$$(const Heap_$$$$* pheap) {
 	return pheap->size == 0;
 }
-int Heap_compare_$$$$(const @@@@ _A, const @@@@ _B) {
-	return _A.priority - _B.priority; // Minheap
-	/*while (*_A && *_A == *_B) _A++, _B++;
-	return *_A - *_B;*/
+int Heap_compare_$$$$(const @@@@ A, const @@@@ B) {
+	return A.priority - B.priority; // Minheap
+	// return strcmp(A, B);
 }
 void Heap_push_$$$$(Heap_$$$$* pheap, @@@@ item) {
 	if (pheap->size == pheap->capacity - 1 && !(pheap->items = realloc(pheap->items, (pheap->capacity *= 2) * sizeof(@@@@)))) exit(1);
