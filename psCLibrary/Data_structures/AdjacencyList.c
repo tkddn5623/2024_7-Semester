@@ -17,8 +17,8 @@ Graph* Graph_new(int vtxsize, int edgesize) {
 	graph->edgesize = edgesize + vtxsize;
 	graph->edgecount = vtxsize;
 	for (int i = 0; i < vtxsize; i++) {
-		graph->edges[i].next = &graph->edges[i];
 		graph->edges[i].tail = &graph->edges[i];
+		graph->edges[i].next = &graph->edges[i];
 	}
 	return graph;
 }
@@ -76,10 +76,10 @@ void solve1197_Prim(const Graph* graph) {
 
 	ArrayHeap* heap = AH_new(graph->edgesize);
 	AH_push(heap, (HNode) { 1, 0 });
-	
+
 	while (!AH_empty(heap)) {
 		HNode e = AH_pop(heap);
-		
+
 		if (visited[e.value]) continue;
 
 		visited[e.value] = 1;
