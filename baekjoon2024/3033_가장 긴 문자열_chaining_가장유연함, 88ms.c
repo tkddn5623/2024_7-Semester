@@ -1,3 +1,8 @@
+/*
+* Depending on the total memory usage, the time changes to 160ms, 100ms, and 88ms.
+* 2^19, 2^18, 200000
+* If I optimize for O3, it's 76ms
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,7 +10,6 @@
 
 #define MAXLEN (200000)
 #define POLY_COEF (5381)
-#define HASH_EMPTY (NULL)
 
 struct string_slice {
 	const char* ptr;
@@ -13,15 +17,16 @@ struct string_slice {
 	unsigned int hash;
 };
 
-typedef struct {
-	struct string_slice key;
-	// int value;
+typedef struct _Hashtable_keypair {
+	union { struct string_slice key; struct _Hashtable_keypair* tail; };
+	struct _Hashtable_keypair* next;
 } Hashtable_keypair;
 
 typedef struct {
 	Hashtable_keypair* bucket;
 	int bucketbits;
-	int bucketload;
+	int edgesize;
+	int edgecount;
 } Hashtable;
 
 
@@ -29,11 +34,16 @@ typedef struct {
 int tiny_hash_slice(const struct string_slice s, int bits) {
 	return s.hash & ((1 << bits) - 1);
 }
-Hashtable* Hashtable_new() {
-	Hashtable* ht = calloc(1, sizeof(Hashtable)); if (!ht) exit(1);
-	ht->bucket = calloc(16, sizeof(Hashtable_keypair));  if (!ht->bucket) exit(1);
-	ht->bucketbits = 4;
-	for (int sz = 16, i = 0; i < sz; i++) { ht->bucket[i].key.ptr = HASH_EMPTY; }
+Hashtable* Hashtable_new(int bucketbits, int edgesize) {
+	Hashtable* ht = malloc(sizeof(Hashtable)); if (!ht) exit(1);
+	ht->bucket = calloc(edgesize + (1 << bucketbits), sizeof(Hashtable_keypair));  if (!ht->bucket) exit(1);
+	ht->bucketbits = bucketbits;
+	ht->edgesize = edgesize + (1 << bucketbits);
+	ht->edgecount = 1 << bucketbits;
+	for (int sz = 1 << bucketbits, i = 0; i < sz; i++) {
+		ht->bucket[i].tail = &ht->bucket[i];
+		ht->bucket[i].next = &ht->bucket[i];
+	}
 	return ht;
 }
 void Hashtable_delete(Hashtable* ht) {
@@ -43,40 +53,22 @@ void Hashtable_delete(Hashtable* ht) {
 int Hashtable_compare(const struct string_slice A, const struct string_slice B) {
 	return strncmp(A.ptr, B.ptr, A.length);
 }
-int Hashtable_compare_null(const struct string_slice A) {
-	return !(A.ptr == HASH_EMPTY);
-}
-void Hashtable_resize(Hashtable* ht) {
-	const int bits2 = ht->bucketbits + 1, sz = 1 << bits2;
-	Hashtable_keypair* bucket2 = calloc(sz, sizeof(Hashtable_keypair)); if (!bucket2) exit(1);
-	for (int i = 0; i < sz; i++) { bucket2[i].key.ptr = HASH_EMPTY; }
-	for (int j = sz / 2, i = 0; i < j; i++) {
-		if (!Hashtable_compare_null(ht->bucket[i].key)) continue;
-		for (int index = tiny_hash_slice(ht->bucket[i].key, bits2); ; index = (index + 1) & (sz - 1)) {
-			if (!Hashtable_compare_null(bucket2[index].key)) { bucket2[index] = ht->bucket[i]; break; }
-		}
-	}
-	free(ht->bucket);
-	ht->bucket = bucket2;
-	ht->bucketbits = bits2;
-}
 Hashtable_keypair* Hashtable_find(const Hashtable* ht, struct string_slice key) {
-	for (int sz = 1 << ht->bucketbits, index = tiny_hash_slice(key, ht->bucketbits); ; index = (index + 1) & (sz - 1)) {
-		struct string_slice key2 = ht->bucket[index].key;
-		if (!Hashtable_compare_null(key2) || !Hashtable_compare(key, key2)) return &ht->bucket[index];
+	int index = tiny_hash_slice(key, ht->bucketbits);
+	for (Hashtable_keypair* head = &ht->bucket[index], *cur = head->next; cur != head; cur = cur->next) {
+		if (!Hashtable_compare(cur->key, key)) return cur;
 	}
 	return NULL;
 }
 int Hashtable_insert_or_change(Hashtable* ht, struct string_slice key) {
-	for (int sz = 1 << ht->bucketbits, index = tiny_hash_slice(key, ht->bucketbits); ; index = (index + 1) & (sz - 1)) {
-		struct string_slice key2 = ht->bucket[index].key;
-		if (!Hashtable_compare_null(key2)) {
-			ht->bucket[index] = (Hashtable_keypair){ key };
-			if (++ht->bucketload > sz / 2) Hashtable_resize(ht);
-			return 0;
-		}
-		if (!Hashtable_compare(key, key2)) { return 1; }
+	int index = tiny_hash_slice(key, ht->bucketbits);
+	for (Hashtable_keypair* head = &ht->bucket[index], *cur = head->next; cur != head; cur = cur->next) {
+		if (!Hashtable_compare(cur->key, key)) return 1;
 	}
+	ht->bucket[ht->edgecount] = (Hashtable_keypair){ .key = key, .next = &ht->bucket[index] };
+	ht->bucket[index].tail->next = &ht->bucket[ht->edgecount];
+	ht->bucket[index].tail = &ht->bucket[ht->edgecount++];
+	return 0;
 }
 void IO_getline(char* dest, int max) {
 	for (*dest = 0, fgets(dest, max, stdin); *dest >= ' '; dest++);; *dest = 0;
@@ -85,7 +77,7 @@ void IO_getline(char* dest, int max) {
 
 // Solving functions
 int solve3033_attempt(const char str[], const int L, const int K) {
-	Hashtable* ht = Hashtable_new();
+	Hashtable* ht = Hashtable_new(18, 200000);
 	unsigned int power = 1, hash = 0;
 	int exist = 0;
 

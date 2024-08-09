@@ -3,18 +3,19 @@
 #include <string.h>
 #include <assert.h>
 
-#define MAXL (200000)
-#define HASH_MAXSIZE (524288)
-#define POLY_COEF (547)
-
+#define MAXLEN (200000)
+#define POLY_COEF (5381)
 #define HASH_EMPTY (NULL)
 
 struct string_slice {
 	const char* ptr;
+	int length;
+	unsigned int hash;
 };
 
 typedef struct {
 	struct string_slice key;
+	// int value;
 } Hashtable_keypair;
 
 typedef struct {
@@ -25,43 +26,30 @@ typedef struct {
 
 
 // Useful functions
-/*
 int tiny_hash_slice(const struct string_slice s, int bits) {
 	return s.hash & ((1 << bits) - 1);
 }
-*/
 Hashtable* Hashtable_new() {
 	Hashtable* ht = calloc(1, sizeof(Hashtable)); if (!ht) exit(1);
-	ht->bucket = calloc(524288, sizeof(Hashtable_keypair));  if (!ht->bucket) exit(1);
-	ht->bucketbits = 19;
-	//for (int sz = 16, i = 0; i < sz; i++) { ht->bucket[i].key.length = HASH_EMPTY; }
+	ht->bucket = calloc(16, sizeof(Hashtable_keypair));  if (!ht->bucket) exit(1);
+	ht->bucketbits = 4;
+	for (int sz = 16, i = 0; i < sz; i++) { ht->bucket[i].key.ptr = HASH_EMPTY; }
 	return ht;
 }
 void Hashtable_delete(Hashtable* ht) {
 	free(ht->bucket);
 	free(ht);
 }
-
-static int LENGTH;
-
-int Hashtable_compare(struct string_slice A, struct string_slice B) {
-	return strncmp(A.ptr, B.ptr, LENGTH);
-	/*
-	int n = A.length <= B.length ? A.length : B.length;
-	while (n && *A.ptr && *A.ptr == *B.ptr) {
-		A.ptr++, B.ptr++, n--;
-	}
-	return n > 0 ? *A.ptr - *B.ptr : A.length - B.length;
-	*/
+int Hashtable_compare(const struct string_slice A, const struct string_slice B) {
+	return strncmp(A.ptr, B.ptr, A.length);
 }
-int Hashtable_compare_null(const struct string_slice _A) {
-	return !(_A.ptr == HASH_EMPTY);
+int Hashtable_compare_null(const struct string_slice A) {
+	return !(A.ptr == HASH_EMPTY);
 }
 void Hashtable_resize(Hashtable* ht) {
-	/*
 	const int bits2 = ht->bucketbits + 1, sz = 1 << bits2;
 	Hashtable_keypair* bucket2 = calloc(sz, sizeof(Hashtable_keypair)); if (!bucket2) exit(1);
-	//for (int i = 0; i < sz; i++) { bucket2[i].key.length = HASH_EMPTY; }
+	for (int i = 0; i < sz; i++) { bucket2[i].key.ptr = HASH_EMPTY; }
 	for (int j = sz / 2, i = 0; i < j; i++) {
 		if (!Hashtable_compare_null(ht->bucket[i].key)) continue;
 		for (int index = tiny_hash_slice(ht->bucket[i].key, bits2); ; index = (index + 1) & (sz - 1)) {
@@ -71,24 +59,23 @@ void Hashtable_resize(Hashtable* ht) {
 	free(ht->bucket);
 	ht->bucket = bucket2;
 	ht->bucketbits = bits2;
-	*/
 }
-Hashtable_keypair* Hashtable_find(const Hashtable* ht, struct string_slice key, int index) {
-	for (int sz = 1 << ht->bucketbits; ; index = (index + 1) & (sz - 1)) {
+Hashtable_keypair* Hashtable_find(const Hashtable* ht, struct string_slice key) {
+	for (int sz = 1 << ht->bucketbits, index = tiny_hash_slice(key, ht->bucketbits); ; index = (index + 1) & (sz - 1)) {
 		struct string_slice key2 = ht->bucket[index].key;
 		if (!Hashtable_compare_null(key2) || !Hashtable_compare(key, key2)) return &ht->bucket[index];
 	}
 	return NULL;
 }
-int Hashtable_insert_or_change(Hashtable* ht, struct string_slice key, int index) {
-	for (int sz = 1 << ht->bucketbits; ; index = (index + 1) & (sz - 1)) {
+int Hashtable_insert_or_change(Hashtable* ht, struct string_slice key) {
+	for (int sz = 1 << ht->bucketbits, index = tiny_hash_slice(key, ht->bucketbits); ; index = (index + 1) & (sz - 1)) {
 		struct string_slice key2 = ht->bucket[index].key;
 		if (!Hashtable_compare_null(key2)) {
 			ht->bucket[index] = (Hashtable_keypair){ key };
 			if (++ht->bucketload > sz / 2) Hashtable_resize(ht);
 			return 0;
 		}
-		if (!Hashtable_compare(key, key2)) { return 1; }
+		if (!Hashtable_compare(key, key2)) return 1;
 	}
 }
 void IO_getline(char* dest, int max) {
@@ -99,26 +86,20 @@ void IO_getline(char* dest, int max) {
 // Solving functions
 int solve3033_attempt(const char str[], const int L, const int K) {
 	Hashtable* ht = Hashtable_new();
-	int power = 1, hash = 0;
+	unsigned int power = 1, hash = 0;
 	int exist = 0;
 
 	for (int i = 0; i < K; i++) {
-		hash = (hash * POLY_COEF + str[i]) % HASH_MAXSIZE;
-		power = (power * POLY_COEF) % HASH_MAXSIZE;
+		hash = hash * POLY_COEF + str[i];
+		power = power * POLY_COEF;
 	}
 
-	// If you don't do this, you may end up with a negative number 
-	// during hash calculation.
-	// i.e. hash = (hash * POLY_COEF) + (1 * str[i + K - 1]) - (power * str[i - 1]);
-	power = HASH_MAXSIZE - power;
-	Hashtable_insert_or_change(ht, (struct string_slice) { &str[0] }, hash);
-
-	LENGTH = K;
+	Hashtable_insert_or_change(ht, (struct string_slice) { &str[0], K, hash });
 
 	for (int i = 1; i <= L - K; i++) {
-		hash = ((hash * POLY_COEF) + (1 * str[i + K - 1]) + (power * str[i - 1])) % HASH_MAXSIZE;
+		hash = ((hash * POLY_COEF) + (1 * str[i + K - 1]) - (power * str[i - 1]));
 
-		if (Hashtable_insert_or_change(ht, (struct string_slice) { &str[i] }, hash)) {
+		if (Hashtable_insert_or_change(ht, (struct string_slice) { &str[i], K, hash })) {
 			exist = 1;
 			break;
 		}
@@ -145,7 +126,7 @@ int main() {
 #ifndef ONLINE_JUDGE
 	freopen("i.txt", "r", stdin);
 #endif
-	static char str[MAXL + 2];
+	static char str[MAXLEN + 2];
 	int L;
 	scanf("%d ", &L);
 	IO_getline(str, sizeof(str));
