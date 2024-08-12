@@ -1,14 +1,9 @@
 #define MAXLEN (1000000)
 
-int string_length(const char* a) {
-	const char* b = a;
-	while (*b) b++;
-	return b - a;
-}
 int* KMP_Matcher(const char text[], const char pattern[]) {
 	static int prefix[MAXLEN];
-	const int len_text = string_length(text);
-	const int len_ptrn = string_length(pattern);
+	const int len_text = strlen(text);
+	const int len_ptrn = strlen(pattern);
 	int idx_size = 0, idx_capacity = 16;
 	int* idx_list = calloc(idx_capacity, sizeof(int)); if (!idx_list) exit(1);
 
