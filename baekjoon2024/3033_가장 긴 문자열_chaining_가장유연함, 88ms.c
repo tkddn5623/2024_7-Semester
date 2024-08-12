@@ -36,7 +36,7 @@ int tiny_hash_slice(const struct string_slice s, int bits) {
 }
 Hashtable* Hashtable_new(int bucketbits, int edgesize) {
 	Hashtable* ht = malloc(sizeof(Hashtable)); if (!ht) exit(1);
-	ht->bucket = calloc(edgesize + (1 << bucketbits), sizeof(Hashtable_keypair));  if (!ht->bucket) exit(1);
+	ht->bucket = calloc(edgesize + (1LL << bucketbits), sizeof(Hashtable_keypair)); if (!ht->bucket) exit(1);
 	ht->bucketbits = bucketbits;
 	ht->edgesize = edgesize + (1 << bucketbits);
 	ht->edgecount = 1 << bucketbits;

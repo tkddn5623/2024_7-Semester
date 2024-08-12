@@ -34,7 +34,7 @@ int tiny_hash_i32(unsigned int k, int bits) {
 }
 Hashtable_$$$$* Hashtable_new_$$$$() {
 	Hashtable_$$$$* ht = calloc(1, sizeof(Hashtable_$$$$)); if (!ht) exit(1);
-	ht->bucket = calloc(16, sizeof(Hashtable_keypair_$$$$));  if (!ht->bucket) exit(1);
+	ht->bucket = calloc(16, sizeof(Hashtable_keypair_$$$$)); if (!ht->bucket) exit(1);
 	ht->bucketbits = 4;
 	for (int sz = 16, i = 0; i < sz; i++) { ht->bucket[i].key = HASH_EMPTY_$$$$; }
 	return ht;
@@ -79,7 +79,10 @@ int Hashtable_insert_or_change_$$$$(Hashtable_$$$$* ht, @@@@ key, int value) {
 			if (++ht->bucketload > sz / 2) Hashtable_resize_$$$$(ht);
 			return 0;
 		}
-		if (!Hashtable_compare_$$$$(key, key2)) { ht->bucket[index].value += value; return 1; }
+		if (!Hashtable_compare_$$$$(key, key2)) { 
+			ht->bucket[index].value += value; 
+			return 1; 
+		}
 	}
 }
 
@@ -126,8 +129,7 @@ void Hashtable_delete_$$$$(Hashtable_$$$$* ht) {
 }
 int Hashtable_compare_$$$$(const @@@@ A, const @@@@ B) {
 	return A - B;
-	/*while (*A && *A == *B) A++, B++;
-	return *A - *B;*/
+	// return strncmp(A.ptr, B.ptr, A.length);
 }
 void Hashtable_resize_$$$$(Hashtable_$$$$* ht) {
 	const int bits2 = ht->bucketbits + 1, sz = 1 << bits2;
@@ -157,7 +159,10 @@ int Hashtable_insert_or_change_$$$$(Hashtable_$$$$* ht, @@@@ key, int value) {
 			if (++ht->bucketload > sz / 2) Hashtable_resize_$$$$(ht);
 			return 0;
 		}
-		if (!Hashtable_compare_$$$$(key, key2)) { ht->bucket[index].value += value; return 1; }
+		if (!Hashtable_compare_$$$$(key, key2)) { 
+			ht->bucket[index].value += value; 
+			return 1; 
+		}
 	}
 }
 
@@ -182,4 +187,7 @@ int Hashtable_insert_or_change_$$$$(Hashtable_$$$$* ht, @@@@ key, int value) {
 *
 * 2024.8.8 Thu
 * Now It is ready for the case where a struct comes.
+*
+* 2024.8.12 Mon
+* Revert default string comparison function to strncmp
 */

@@ -5,12 +5,14 @@ struct string_slice {
 };
 
 typedef struct _Hashtable_keypair_$$$$ {
-	union { @@@@ key; struct _Hashtable_keypair_$$$$* tail; };
 	struct _Hashtable_keypair_$$$$* next;
+	@@@@ key;
+	int value;
 } Hashtable_keypair_$$$$;
 
 typedef struct {
 	Hashtable_keypair_$$$$* bucket;
+	Hashtable_keypair_$$$$** heads;
 	int bucketbits;
 	int edgesize;
 	int edgecount;
@@ -33,18 +35,16 @@ int tiny_hash_i32(unsigned int k, int bits) {
 }
 Hashtable_$$$$* Hashtable_new_$$$$(int bucketbits, int edgesize) {
 	Hashtable_$$$$* ht = malloc(sizeof(Hashtable_$$$$)); if (!ht) exit(1);
-	ht->bucket = calloc(edgesize + (1 << bucketbits), sizeof(Hashtable_keypair_$$$$));  if (!ht->bucket) exit(1);
+	ht->bucket = calloc(edgesize, sizeof(Hashtable_keypair_$$$$)); if (!ht->bucket) exit(1);
+	ht->heads = calloc(1LL << bucketbits, sizeof(Hashtable_keypair_$$$$*)); if (!ht->heads) exit(1);
 	ht->bucketbits = bucketbits;
-	ht->edgesize = edgesize + (1 << bucketbits);
-	ht->edgecount = 1 << bucketbits;
-	for (int sz = 1 << bucketbits, i = 0; i < sz; i++) {
-		ht->bucket[i].tail = &ht->bucket[i];
-		ht->bucket[i].next = &ht->bucket[i];
-	}
+	ht->edgesize = edgesize;
+	ht->edgecount = 0;
 	return ht;
 }
 void Hashtable_delete_$$$$(Hashtable_$$$$* ht) {
 	free(ht->bucket);
+	free(ht->heads);
 	free(ht);
 }
 int Hashtable_compare_$$$$(const @@@@ A, const @@@@ B) {
@@ -53,22 +53,21 @@ int Hashtable_compare_$$$$(const @@@@ A, const @@@@ B) {
 }
 Hashtable_keypair_$$$$* Hashtable_find_$$$$(const Hashtable_$$$$* ht, @@@@ key) {
 	int index = tiny_hash_%%%%(key, ht->bucketbits);
-	for (Hashtable_keypair_$$$$* head = &ht->bucket[index], *cur = head->next; cur != head; cur = cur->next) {
+	for (Hashtable_keypair_$$$$* cur = ht->heads[index]; cur != NULL; cur = cur->next) {
 		if (!Hashtable_compare_$$$$(cur->key, key)) return cur;
 	}
 	return NULL;
 }
-int Hashtable_insert_or_change_$$$$(Hashtable_$$$$* ht, @@@@ key) {
+int Hashtable_insert_or_change_$$$$(Hashtable_$$$$* ht, @@@@ key, int value) {
 	int index = tiny_hash_%%%%(key, ht->bucketbits);
-	for (Hashtable_keypair_$$$$* head = &ht->bucket[index], *cur = head->next; cur != head; cur = cur->next) {
+	for (Hashtable_keypair_$$$$* cur = ht->heads[index]; cur != NULL; cur = cur->next) {
 		if (!Hashtable_compare_$$$$(cur->key, key)) {
-			// cur->key.value += value;
+			cur->value += value;
 			return 1;
 		}
 	}
-	ht->bucket[ht->edgecount] = (Hashtable_keypair_$$$$){ .key = key, .next = &ht->bucket[index] };
-	ht->bucket[index].tail->next = &ht->bucket[ht->edgecount];
-	ht->bucket[index].tail = &ht->bucket[ht->edgecount++];
+	ht->bucket[ht->edgecount] = (Hashtable_keypair_$$$$){ .next = ht->heads[index], .key = key, .value = value };
+	ht->heads[index] = &ht->bucket[ht->edgecount++];
 	return 0;
 }
 
@@ -76,4 +75,8 @@ int Hashtable_insert_or_change_$$$$(Hashtable_$$$$* ht, @@@@ key) {
 /*
 * 2024.8.10 Sat
 * Separate chaining reborn.
+*
+* 2024.8.12 Mon
+* Separated into version 1 for the large size key
+* and version 2 for the 4-byte key
 */

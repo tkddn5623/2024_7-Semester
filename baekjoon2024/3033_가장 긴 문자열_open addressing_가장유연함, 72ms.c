@@ -31,7 +31,7 @@ int tiny_hash_slice(const struct string_slice s, int bits) {
 }
 Hashtable* Hashtable_new() {
 	Hashtable* ht = calloc(1, sizeof(Hashtable)); if (!ht) exit(1);
-	ht->bucket = calloc(16, sizeof(Hashtable_keypair));  if (!ht->bucket) exit(1);
+	ht->bucket = calloc(16, sizeof(Hashtable_keypair)); if (!ht->bucket) exit(1);
 	ht->bucketbits = 4;
 	for (int sz = 16, i = 0; i < sz; i++) { ht->bucket[i].key.ptr = HASH_EMPTY; }
 	return ht;
