@@ -80,7 +80,7 @@ int Hashtable_insert_or_change_$$$$(Hashtable_$$$$* ht, @@@@ key, int value) {
 			return 0;
 		}
 		if (!Hashtable_compare_$$$$(key, key2)) { 
-			ht->bucket[index].value += value; 
+			ht->bucket[index].value += value;
 			return 1; 
 		}
 	}
@@ -166,6 +166,58 @@ int Hashtable_insert_or_change_$$$$(Hashtable_$$$$* ht, @@@@ key, int value) {
 	}
 }
 
+// Resize by DSU version
+int UF_find(int disjset[], int key) {
+	if (disjset[key] < 0) return key;
+	else return disjset[key] = UF_find(disjset, disjset[key]);
+}
+void UF_union(int disjset[], int A, int B) {
+	A = UF_find(disjset, A);
+	B = UF_find(disjset, B);
+	if (A == B) return;
+	//disjset[A] += disjset[B];
+	disjset[B] = A;
+}
+void Hashtable_resize_$$$$(Hashtable_$$$$* ht) {
+	const int bits2 = ht->bucketbits + 1, sz = 1 << bits2;
+	Hashtable_keypair_$$$$* bucket2 = calloc(sz, sizeof(Hashtable_keypair_$$$$)); if (!bucket2) exit(1);
+	int* disjset = calloc(sz, sizeof(int)); if (!disjset) exit(1);
+	int* visited = calloc((sz + 31) / 32, sizeof(int)); if (!visited) exit(1);
+
+	memset(disjset, -1, sizeof(int) * sz);
+	//for (int i = 0; i < sz; i++) { bucket2[i].key.length = HASH_EMPTY; }
+
+	for (int j = sz / 2, i = 0; i < j; i++) {
+		if (!Hashtable_compare_null(ht->bucket[i].key)) continue;
+		
+		int index = tiny_hash_slice(ht->bucket[i].key, bits2);
+
+		if (visited[index >> 5] & (1 << (index & 31))) {
+			index = (UF_find(disjset, index) + 1) & (sz - 1);
+		}
+
+		visited[index >> 5] |= (1 << (index & 31));
+		int left = (index + sz - 1) & (sz - 1);
+		int right = (index + 1) & (sz - 1);
+
+		if (visited[left >> 5] & (1 << (left & 31))) {
+			visited[left >> 5] |= (1 << (left & 31));
+			UF_union(disjset, index, left);
+		}
+		if (visited[right >> 5] & (1 << (right & 31))) {
+			visited[right >> 5] |= (1 << (right & 31));
+			UF_union(disjset, right, index);
+		}
+
+		bucket2[index] = ht->bucket[i];
+	}
+
+	free(disjset);
+	free(visited);
+	free(ht->bucket);
+	ht->bucket = bucket2;
+	ht->bucketbits = bits2;
+}
 
 /*
 * 2024-01-16 Tue
@@ -190,4 +242,8 @@ int Hashtable_insert_or_change_$$$$(Hashtable_$$$$* ht, @@@@ key, int value) {
 *
 * 2024.8.12 Mon
 * Revert default string comparison function to strncmp
+*
+* 2024.8.12 Wed
+* Added a fast resize function, 
+* but with a slightly more complex implementation using DSU.
 */

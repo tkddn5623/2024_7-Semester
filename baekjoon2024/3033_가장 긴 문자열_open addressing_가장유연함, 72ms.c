@@ -31,8 +31,8 @@ int tiny_hash_slice(const struct string_slice s, int bits) {
 }
 Hashtable* Hashtable_new() {
 	Hashtable* ht = calloc(1, sizeof(Hashtable)); if (!ht) exit(1);
-	ht->bucket = calloc(16, sizeof(Hashtable_keypair)); if (!ht->bucket) exit(1);
-	ht->bucketbits = 4;
+	ht->bucket = calloc(524288, sizeof(Hashtable_keypair));  if (!ht->bucket) exit(1);
+	ht->bucketbits = 19;
 	for (int sz = 16, i = 0; i < sz; i++) { ht->bucket[i].key.ptr = HASH_EMPTY; }
 	return ht;
 }
@@ -40,8 +40,25 @@ void Hashtable_delete(Hashtable* ht) {
 	free(ht->bucket);
 	free(ht);
 }
-int Hashtable_compare(const struct string_slice A, const struct string_slice B) {
-	return strncmp(A.ptr, B.ptr, A.length);
+int
+strncmp2(const char* s1, const char* s2, register size_t n)
+{
+	return strncmp(s1, s2, n);
+	register unsigned char u1, u2;
+
+	while (n-- > 0)
+	{
+		u1 = (unsigned char)*s1++;
+		u2 = (unsigned char)*s2++;
+		if (u1 != u2)
+			return u1 - u2;
+		if (u1 == '\0')
+			return 0;
+	}
+	return 0;
+}
+int Hashtable_compare(struct string_slice A, struct string_slice B) {
+	return strncmp2(A.ptr, B.ptr, A.length);
 }
 int Hashtable_compare_null(const struct string_slice A) {
 	return !(A.ptr == HASH_EMPTY);
@@ -75,7 +92,7 @@ int Hashtable_insert_or_change(Hashtable* ht, struct string_slice key) {
 			if (++ht->bucketload > sz / 2) Hashtable_resize(ht);
 			return 0;
 		}
-		if (!Hashtable_compare(key, key2)) return 1;
+		if (!Hashtable_compare(key, key2)) { return 1; }
 	}
 }
 void IO_getline(char* dest, int max) {
@@ -84,7 +101,7 @@ void IO_getline(char* dest, int max) {
 
 
 // Solving functions
-int solve3033_attempt(const char str[], const int L, const int K) {
+int solve3033Attempt(const char str[], const int L, const int K) {
 	Hashtable* ht = Hashtable_new();
 	unsigned int power = 1, hash = 0;
 	int exist = 0;
@@ -113,7 +130,7 @@ void solve3033(const char str[], const int L) {
 
 	while (left <= right) {
 		int mid = left + (right - left) / 2;
-		if (solve3033_attempt(str, L, mid)) {
+		if (solve3033Attempt(str, L, mid)) {
 			answer = mid;
 			left = mid + 1;
 		}
