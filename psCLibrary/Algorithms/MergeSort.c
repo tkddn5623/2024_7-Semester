@@ -1,5 +1,5 @@
-int MergeSort_compare_$$$$(const @@@@ _A, const @@@@ _B) {
-	return _A - _B;
+int MergeSort_compare_$$$$(const @@@@ A, const @@@@ B) {
+	return A - B;
 }
 void MergeSort_impl_$$$$(@@@@ list[], @@@@ sorted[], const int left, const int right) {
 	if (left >= right) return;

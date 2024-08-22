@@ -1,7 +1,7 @@
 #define MAXLEN (1000000)
 
 int* KMP_Matcher(const char text[], const char pattern[]) {
-	static int prefix[MAXLEN];
+	static int prefix[MAXLEN + 1];
 	const int len_text = strlen(text);
 	const int len_ptrn = strlen(pattern);
 	int idx_size = 0, idx_capacity = 16;
@@ -41,4 +41,6 @@ int* KMP_Matcher(const char text[], const char pattern[]) {
 * 2024.5.9 Thu
 * Switch to dynamic array
 *
+* 2024.8.21 Wed
+* Array index bound error fixed.
 */

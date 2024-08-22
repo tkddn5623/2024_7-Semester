@@ -1,4 +1,4 @@
-int* linear_sieve(int Dest_factors[], const int max) {
+int* Linear_sieve(int Dest_factors[], const int max) {
 	int len = 0, capacity = 16;
 	int* Dest_primes = calloc(capacity, sizeof(int)); if (!Dest_primes) exit(1);
 	Dest_factors[0] = 0;
@@ -25,4 +25,7 @@ int* linear_sieve(int Dest_factors[], const int max) {
 *
 * 2024.5.9 Thu
 * Switch to dynamic array
+*
+* 2024.08.21 Wed
+* Change the first letter to uppercase
 /

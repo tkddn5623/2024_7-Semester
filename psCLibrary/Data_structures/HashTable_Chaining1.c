@@ -5,9 +5,9 @@ struct string_slice {
 };
 
 typedef struct _Hashtable_keypair_$$$$ {
-	struct _Hashtable_keypair_$$$$* next;
 	@@@@ key;
 	int value;
+	struct _Hashtable_keypair_$$$$* next;
 } Hashtable_keypair_$$$$;
 
 typedef struct {
@@ -66,7 +66,7 @@ int Hashtable_insert_or_change_$$$$(Hashtable_$$$$* ht, @@@@ key, int value) {
 			return 1;
 		}
 	}
-	ht->bucket[ht->edgecount] = (Hashtable_keypair_$$$$){ .next = ht->heads[index], .key = key, .value = value };
+	ht->bucket[ht->edgecount] = (Hashtable_keypair_$$$$){ .key = key, .value = value, .next = ht->heads[index] };
 	ht->heads[index] = &ht->bucket[ht->edgecount++];
 	return 0;
 }
