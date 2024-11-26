@@ -53,20 +53,20 @@ void Construct_suffix_array(int sa_dest[], int sa_disjset[], const char text[], 
 	SA_compare_ctx.len = len;
 
 	for (int d = 1;; d *= 2) {
-		static int SA_disjset_temp[MAXLEN];
+		static int sa_disjset_temp[MAXLEN];
 
 		SA_compare_ctx.d = d;
 		MergeSort_SA(sa_dest, len);
 
 		int set_idx = 0;
-		SA_disjset_temp[sa_dest[0]] = 0;
+		sa_disjset_temp[sa_dest[0]] = 0;
 
 		for (int i = 1; i < len; i++) {
 			if (SA_compare(sa_dest[i - 1], sa_dest[i])) set_idx++;
-			SA_disjset_temp[sa_dest[i]] = set_idx;
+			sa_disjset_temp[sa_dest[i]] = set_idx;
 		}
 
-		for (int i = 0; i < len; i++) sa_disjset[i] = SA_disjset_temp[i];
+		for (int i = 0; i < len; i++) sa_disjset[i] = sa_disjset_temp[i];
 
 		if (set_idx == len - 1) break;
 	}
